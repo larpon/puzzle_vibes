@@ -5,7 +5,7 @@ module main
 
 import os
 import shy.lib as shy
-//import shy.vec
+// import shy.vec
 // import shy.matrix
 import shy.embed
 
@@ -18,8 +18,65 @@ enum Mode {
 struct App {
 	embed.ExampleApp
 mut:
-	mode   Mode    //= .game
-	puzzle &Puzzle = shy.null
+	mode         Mode //= .game
+	puzzle       &Puzzle     = shy.null
+	start_button &MenuButton = shy.null
+}
+
+[heap]
+struct MenuButton {
+	shy.Rect
+mut:
+	a             &App
+	label         string
+	click_started bool
+	on_clicked    fn (mut button MenuButton) bool
+}
+
+fn (mb MenuButton) draw() {
+	a := mb.a
+
+	area := mb.Rect
+	drawable_size := a.window.drawable_size()
+	draw_scale := a.window.draw_factor()
+	mouse_area := area.displaced_from(.center)
+	mut color := shy.colors.shy.red
+	if mouse_area.contains(a.mouse.x, a.mouse.y) {
+		color = shy.colors.shy.blue
+		if mb.click_started {
+			color = shy.colors.shy.green
+		}
+	}
+
+	a.quick.rect(
+		Rect: area
+		origin: .center
+		color: color
+		stroke: shy.Stroke{
+			width: 3
+		}
+	)
+
+	/*
+	a.quick.rect(
+		Rect: mouse_area
+		color: shy.rgba(127,127,127,180)
+	)*/
+
+	mut design_factor := f32(1440) / drawable_size.width
+	if design_factor == 0 {
+		design_factor = 1
+	}
+	font_size_factor := 1 / design_factor * draw_scale
+
+	a.quick.text(
+		x: area.x
+		y: area.y
+		align: .center
+		origin: .center
+		size: 50 * font_size_factor
+		text: 'START'
+	)
 }
 
 [markused]
@@ -50,6 +107,76 @@ pub fn (mut a App) init() ! {
 		image: img
 		dimensions: dim
 	)!
+
+	a.mouse.on_button_down(fn [mut a] (mce shy.MouseButtonEvent) bool {
+		mouse := a.mouse
+		if a.mode != .menu {
+			return false
+		}
+		if mce.button != .left {
+			return false
+		}
+		mut mb := a.start_button
+		area := mb.Rect
+		mouse_area := area.displaced_from(.center)
+		if mouse_area.contains(mouse.x, mouse.y) {
+			// println(mce.clicks)
+			mb.click_started = true
+		}
+		return false
+	})
+
+	a.mouse.on_button_click(fn [mut a] (mce shy.MouseButtonEvent) bool {
+		mouse := a.mouse
+		if a.mode != .menu {
+			return false
+		}
+		if mce.button != .left {
+			return false
+		}
+		mut mb := a.start_button
+		was_started := mb.click_started
+		mb.click_started = false
+		area := mb.Rect
+		mouse_area := area.displaced_from(.center)
+		if was_started && mouse_area.contains(mouse.x, mouse.y) {
+			// println(mce.clicks)
+			if mb.on_clicked != unsafe { nil } {
+				return mb.on_clicked(mut mb)
+			}
+		}
+		return false
+	})
+
+	a.mouse.on_button_click(fn [mut a] (mce shy.MouseButtonEvent) bool {
+		if a.mode != .game {
+			return false
+		}
+		if mce.button != .left {
+			return false
+		}
+		if a.puzzle.solved {
+			// println('${a.mode} -> .game')
+			a.mode = .menu
+			return true
+		}
+		return false
+	})
+
+	// Menu
+	a.start_button = &MenuButton{
+		a: a
+		label: 'START'
+		on_clicked: fn (mut button MenuButton) bool {
+			mut a := button.a
+			a.puzzle.scramble() or { panic(err) }
+			// a.shy.once(fn [mut a] () {
+			// println('${a.mode} -> .game')
+			a.mode = .game
+			// }, 100)
+			return true
+		}
+	}
 }
 
 [markused]
@@ -57,6 +184,7 @@ pub fn (mut a App) frame(dt f64) {
 	// a.draw.push_matrix()
 	// a.draw.scale(0.5,0.5,1)
 	// a.draw.translate(0,1280,0)
+	// println('mode: ${a.mode}')
 	match a.mode {
 		.game {
 			a.render_game_frame(dt)
@@ -71,7 +199,6 @@ pub fn (mut a App) frame(dt f64) {
 // [live]
 pub fn (mut a App) render_menu_frame(dt f64) {
 	drawable_size := a.window.drawable_size()
-	draw_scale := a.window.draw_factor()
 	// println(drawable_size)
 
 	a.quick.rect(
@@ -91,49 +218,9 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		width: 0.2 * drawable_size.width
 		height: 0.1 * drawable_size.width
 	}
+	a.start_button.Rect = area
 
-	mouse_area := area.displaced_from(.center)
-	mut color := shy.colors.shy.red
-	if mouse_area.contains(a.mouse.x, a.mouse.y) {
-		color = shy.colors.shy.blue
-		if a.mouse.is_button_down(.left) {
-			color = shy.colors.shy.green
-			a.puzzle.scramble() or { panic(err) }
-			a.shy.once(fn [mut a] () {
-				a.mode = .game
-			}, 100)
-		}
-	}
-
-	a.quick.rect(
-		Rect: area
-		origin: .center
-		color: color
-		stroke: shy.Stroke{
-			width: 3
-		}
-	)
-
-	/*
-	a.quick.rect(
-		Rect: mouse_area
-		color: shy.rgba(127,127,127,180)
-	)*/
-
-	mut design_factor := f32(1440)/a.window.width()
-	if design_factor == 0 {
-		design_factor = 1
-	}
-	font_size_factor := 1/design_factor * draw_scale
-
-	a.quick.text(
-		x: area.x
-		y: area.y
-		align: .center
-		origin: .center
-		size: 50 * font_size_factor
-		text: 'START'
-	)
+	a.start_button.draw()
 }
 
 pub fn (mut a App) render_game_frame(dt f64) {
@@ -181,11 +268,11 @@ pub fn (mut a App) render_game_frame(dt f64) {
 			fills: .body
 		)
 
-		mut design_factor := f32(1440)/a.window.width()
+		mut design_factor := f32(1440) / a.window.width()
 		if design_factor == 0 {
 			design_factor = 1
 		}
-		font_size_factor := 1/design_factor * a.window.draw_factor()
+		font_size_factor := 1 / design_factor * a.window.draw_factor()
 
 		font_size := f32(142) * font_size_factor
 		a.quick.text(
@@ -232,10 +319,10 @@ pub fn (mut a App) event(e shy.Event) {
 			}
 		}
 		shy.MouseMotionEvent {
-			a.on_game_event_update(GameEvent(e))
+			a.on_game_event_update(e)
 		}
 		shy.MouseButtonEvent {
-			a.on_game_event_update(GameEvent(e))
+			a.on_game_event_update(e)
 		}
 		shy.WindowResizeEvent {
 			mut viewport := a.window.drawable_size().to_rect()
@@ -245,22 +332,29 @@ pub fn (mut a App) event(e shy.Event) {
 	}
 }
 
-type GameEvent = shy.MouseMotionEvent | shy.MouseButtonEvent
+type GameEvent = shy.MouseButtonEvent | shy.MouseMotionEvent
+
+type UIEvent = shy.MouseButtonEvent | shy.MouseMotionEvent
 
 // [live]
+pub fn (mut a App) on_menu_event_update(event_type UIEvent) {
+	if a.mode != .menu {
+		return
+	}
+
+	// is_button_event := event_type is shy.MouseButtonEvent
+}
+
 pub fn (mut a App) on_game_event_update(event_type GameEvent) {
 	if a.mode != .game {
 		return
 	}
 
-	is_button_event := event_type is shy.MouseButtonEvent
-
 	if a.puzzle.solved {
-		if a.mouse.is_button_down(.left) {
-			a.mode = .menu
-		}
 		return
 	}
+
+	is_button_event := event_type is shy.MouseButtonEvent
 
 	m := shy.vec2[f32](a.mouse.x, a.mouse.y)
 	mut solved := true
@@ -282,8 +376,8 @@ pub fn (mut a App) on_game_event_update(event_type GameEvent) {
 						piece.pos = p.pos_solved
 					} else {
 						svpr := p.solved_viewport_rect_raw()
-						pos := shy.vec2(svpr.x,svpr.y)
-						piece.pos = piece.viewport_to_local(pos)// - piece.pos
+						pos := shy.vec2(svpr.x, svpr.y)
+						piece.pos = piece.viewport_to_local(pos) // - piece.pos
 					}
 					piece.laid = true
 				}

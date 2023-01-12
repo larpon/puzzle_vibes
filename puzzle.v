@@ -29,22 +29,21 @@ mut:
 
 [params]
 struct PuzzleConfig {
-	app &App // TODO abstract drawing out into user-land?
+	app        &App     // TODO abstract drawing out into user-land?
 	viewport   shy.Rect // Area defining the rendered output
 	image      shy.Image
 	dimensions shy.Size // width: amount of horizontal pieces, height: amount of vertical pieces
 }
-
 
 [heap]
 struct Piece {
 	app    &App
 	puzzle &Puzzle
 mut:
-	id         u32 // flat index row major
+	id         u32       // flat index row major
 	xy         Vec2[u32] // x,y piece id top-left = 0,0 bottom-right = puzzle.dim.w-1/h-1
 	pos        Vec2[f32] // x,y in *viewport*
-	size       shy.Size // size before scaling
+	size       shy.Size  // size before scaling
 	pos_solved Vec2[f32] // x,y in viewport when solved/untouched
 	hovered    bool
 	grabbed    bool
@@ -208,9 +207,9 @@ pub fn (p &Puzzle) get_solved_piece(viewport_pos Vec2[f32]) ?&Piece {
 		width: p.width * p.scale
 		height: p.height * p.scale
 	}
-	if board.contains(vp.x,vp.y) {
+	if board.contains(vp.x, vp.y) {
 		for piece in p.pieces {
-			if piece.solved_viewport_rect().contains(vp.x,vp.y) {
+			if piece.solved_viewport_rect().contains(vp.x, vp.y) {
 				return piece
 			}
 		}
@@ -234,14 +233,13 @@ pub fn (mut p Puzzle) auto_solve() {
 }
 
 fn (mut p Puzzle) draw() {
-
 	a := p.app
 	// NOTE can be uncommented to live/debug scaling
 	// p.update_scale()
 
 	scale := p.scale
 
-	pos := shy.vec2(p.x,p.y)
+	pos := shy.vec2(p.x, p.y)
 
 	a.quick.image(
 		x: pos.x
@@ -261,7 +259,7 @@ fn (mut p Puzzle) draw() {
 	)
 
 	if p.grabbed != shy.null && a.mouse.is_button_down(.left) {
-		m := shy.vec2(f32(a.mouse.x),a.mouse.y)
+		m := shy.vec2(f32(a.mouse.x), a.mouse.y)
 		if rect := p.get_quadrant(m) {
 			a.quick.rect(
 				x: rect.x
@@ -428,7 +426,8 @@ pub fn (p &Piece) draw() {
 		region: p.region()
 	)
 
-	/* TODO this is a slow mess, but only used when debugging...
+	/*
+	TODO this is a slow mess, but only used when debugging...
 	mut design_factor := mth.min(f32(1440) / a.window.width(), f32(720) / a.window.height())
 	if design_factor == 0 {
 		design_factor = 1
