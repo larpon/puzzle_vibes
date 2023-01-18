@@ -21,6 +21,7 @@ mut:
 	mode         Mode //= .game
 	puzzle       &Puzzle     = shy.null
 	start_button &MenuButton = shy.null
+	is_starting  bool
 }
 
 [heap]
@@ -29,15 +30,21 @@ struct MenuButton {
 mut:
 	a             &App
 	label         string
+	scale         f32 = 1.0
 	click_started bool
+	is_hovered    bool
 	on_clicked    fn (mut button MenuButton) bool
+	on_hovered    fn (mut button MenuButton) bool
+	on_leave      fn (mut button MenuButton) bool
+	on_pressed    fn (mut button MenuButton) bool
 }
 
 fn (mb MenuButton) draw() {
 	a := mb.a
 
+	mut text := mb.label
 	area := mb.Rect
-	drawable_size := a.window.drawable_size()
+	drawable_size := a.canvas
 	draw_scale := a.window.draw_factor()
 	mouse_area := area.displaced_from(.center)
 	mut color := shy.colors.shy.red
@@ -55,6 +62,7 @@ fn (mb MenuButton) draw() {
 		stroke: shy.Stroke{
 			width: 3
 		}
+		scale: mb.scale
 	)
 
 	/*
@@ -67,7 +75,7 @@ fn (mb MenuButton) draw() {
 	if design_factor == 0 {
 		design_factor = 1
 	}
-	font_size_factor := 1 / design_factor * draw_scale
+	font_size_factor := 1 / design_factor * draw_scale * mb.scale
 
 	a.quick.text(
 		x: area.x
@@ -75,31 +83,35 @@ fn (mb MenuButton) draw() {
 		align: .center
 		origin: .center
 		size: 50 * font_size_factor
-		text: 'START'
+		text: text
 	)
 }
 
 [markused]
 pub fn (mut a App) init() ! {
 	a.ExampleApp.init()!
-
-	mut win_size := a.window.drawable_size()
 	// win_size = win_size.mul_scalar(0.5)
 	// win_size.width *= 0.5
 	// win_size.height *= 0.5
 
-	a.quick.load(
+	a.quick.load(shy.ImageOptions{
 		uri: a.asset(default_image)
-	)!
+	})!
+
+	a.quick.load(shy.ImageOptions{
+		uri: a.asset('images/seamless_wooden_texture.jpg')
+		wrap_u: .repeat
+		wrap_v: .repeat
+	})!
 
 	img := a.assets.get[shy.Image](a.asset(default_image))!
 
 	dim := shy.Size{
-		width: 2
-		height: 2
+		width: 3
+		height: 3
 	}
 
-	viewport := win_size.to_rect()
+	viewport := a.canvas.to_rect()
 
 	a.puzzle = new_puzzle(
 		app: a
@@ -109,31 +121,56 @@ pub fn (mut a App) init() ! {
 	)!
 
 	a.mouse.on_button_down(fn [mut a] (mce shy.MouseButtonEvent) bool {
-		mouse := a.mouse
 		if a.mode != .menu {
 			return false
 		}
 		if mce.button != .left {
 			return false
 		}
+		mouse := a.mouse
 		mut mb := a.start_button
 		area := mb.Rect
 		mouse_area := area.displaced_from(.center)
 		if mouse_area.contains(mouse.x, mouse.y) {
 			// println(mce.clicks)
 			mb.click_started = true
+			if mb.on_pressed != unsafe { nil } {
+				return mb.on_pressed(mut mb)
+			}
+		}
+		return false
+	})
+
+	a.mouse.on_motion(fn [mut a] (mce shy.MouseMotionEvent) bool {
+		if a.mode != .menu {
+			return false
+		}
+		mouse := a.mouse
+		mut mb := a.start_button
+		area := mb.Rect
+		mouse_area := area.displaced_from(.center)
+		if mouse_area.contains(mouse.x, mouse.y) {
+			mb.is_hovered = true
+			if mb.on_hovered != unsafe { nil } {
+				return mb.on_hovered(mut mb)
+			}
+		} else {
+			if mb.on_leave != unsafe { nil } {
+				return mb.on_leave(mut mb)
+			}
+			mb.is_hovered = false
 		}
 		return false
 	})
 
 	a.mouse.on_button_click(fn [mut a] (mce shy.MouseButtonEvent) bool {
-		mouse := a.mouse
 		if a.mode != .menu {
 			return false
 		}
 		if mce.button != .left {
 			return false
 		}
+		mouse := a.mouse
 		mut mb := a.start_button
 		was_started := mb.click_started
 		mb.click_started = false
@@ -170,11 +207,20 @@ pub fn (mut a App) init() ! {
 		on_clicked: fn (mut button MenuButton) bool {
 			mut a := button.a
 			a.puzzle.scramble() or { panic(err) }
-			// a.shy.once(fn [mut a] () {
-			// println('${a.mode} -> .game')
-			a.mode = .game
-			// }, 100)
+			a.shy.once(fn [mut a, mut button] () {
+				// println('${a.mode} -> .game')
+				button.scale = 1
+				a.mode = .game
+			}, 150)
 			return true
+		}
+		on_pressed: fn (mut button MenuButton) bool {
+			button.scale = 0.98
+			return false
+		}
+		on_leave: fn (mut button MenuButton) bool {
+			button.scale = 1
+			return false
 		}
 	}
 }
@@ -198,7 +244,7 @@ pub fn (mut a App) frame(dt f64) {
 
 // [live]
 pub fn (mut a App) render_menu_frame(dt f64) {
-	drawable_size := a.window.drawable_size()
+	drawable_size := a.canvas
 	// println(drawable_size)
 
 	a.quick.rect(
@@ -224,6 +270,20 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 }
 
 pub fn (mut a App) render_game_frame(dt f64) {
+	mut design_factor := f32(1440) / a.window.width()
+	if design_factor == 0 {
+		design_factor = 1
+	}
+
+	// Background
+	a.quick.image(
+		x: 0
+		y: 0
+		uri: a.asset('images/seamless_wooden_texture.jpg')
+		width: a.canvas.width
+		height: a.canvas.height
+		fill_mode: .tile
+	)
 	a.puzzle.draw()
 
 	mut grabbed_piece := &Piece(0)
@@ -236,19 +296,22 @@ pub fn (mut a App) render_game_frame(dt f64) {
 
 		mouse_area := piece.viewport_rect()
 		if piece.hovered {
-			color := shy.colors.shy.white
-			a.quick.rect(
-				// Rect: mouse_area // need int() to round off
-				x: int(mouse_area.x)
-				y: int(mouse_area.y)
-				width: int(mouse_area.width)
-				height: int(mouse_area.height)
-				color: color
-				fills: .outline
-				stroke: shy.Stroke{
+			if !a.puzzle.solved {
+				mut color := shy.colors.shy.white
+				color.a = 127
+				a.quick.rect(
+					// Rect: mouse_area // need int() to round off
+					x: int(mouse_area.x)
+					y: int(mouse_area.y)
+					width: int(mouse_area.width)
+					height: int(mouse_area.height)
 					color: color
-				}
-			)
+					fills: .outline
+					stroke: shy.Stroke{
+						color: color
+					}
+				)
+			}
 		}
 
 		// println(mouse_area)
@@ -259,7 +322,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 	}
 
 	if a.puzzle.solved {
-		cover := a.window.drawable_size()
+		cover := a.canvas
 		mut color := shy.colors.shy.green
 		color.a = 200
 		a.quick.rect(
@@ -268,10 +331,6 @@ pub fn (mut a App) render_game_frame(dt f64) {
 			fills: .body
 		)
 
-		mut design_factor := f32(1440) / a.window.width()
-		if design_factor == 0 {
-			design_factor = 1
-		}
 		font_size_factor := 1 / design_factor * a.window.draw_factor()
 
 		font_size := f32(142) * font_size_factor
@@ -286,12 +345,13 @@ pub fn (mut a App) render_game_frame(dt f64) {
 	}
 }
 
-// asset unifies locating project assets
-pub fn (a App) asset(path string) string {
+// asset returns a `string` with the full path to the asset.
+// asset unifies locating project assets.
+pub fn (a App) asset(relative_path_to_app string) string {
 	$if wasm32_emscripten {
-		return path
+		return relative_path_to_app
 	}
-	return os.resource_abs_path(os.join_path('assets', path))
+	return os.resource_abs_path(os.join_path('assets', relative_path_to_app))
 }
 
 [markused]
@@ -310,7 +370,12 @@ pub fn (mut a App) event(e shy.Event) {
 					a.mode = .menu
 				}
 				.s {
-					a.puzzle.scramble(do_not_scramble_laid: true) or { panic(err) }
+					if a.mode == .game {
+						a.puzzle.scramble(do_not_scramble_laid: true) or { panic(err) }
+					}
+					if a.mode == .menu {
+						a.mode = .game
+					}
 				}
 				.a {
 					a.puzzle.auto_solve()
@@ -325,7 +390,7 @@ pub fn (mut a App) event(e shy.Event) {
 			a.on_game_event_update(e)
 		}
 		shy.WindowResizeEvent {
-			mut viewport := a.window.drawable_size().to_rect()
+			mut viewport := a.canvas.to_rect()
 			a.puzzle.set_viewport(viewport)
 		}
 		else {}

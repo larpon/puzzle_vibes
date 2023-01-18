@@ -81,7 +81,7 @@ pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
 
 	assert !isnil(puzzle.app)
 
-	mut pid := u32(0)
+	mut pid := u32(1)
 	for x in 0 .. int(dim.width) {
 		for y in 0 .. int(dim.height) {
 			pid++
@@ -124,6 +124,15 @@ pub fn (mut p Puzzle) reset() {
 		piece.reset()
 	}
 	p.solved = true
+}
+
+pub fn (p Puzzle) get_piece(id u32) ?&Piece {
+	for piece in p.pieces {
+		if piece.id == id {
+			return piece
+		}
+	}
+	return none
 }
 
 //[live]
@@ -241,6 +250,7 @@ fn (mut p Puzzle) draw() {
 
 	pos := shy.vec2(p.x, p.y)
 
+	/*
 	a.quick.image(
 		x: pos.x
 		y: pos.y
@@ -248,25 +258,27 @@ fn (mut p Puzzle) draw() {
 		scale: scale
 		color: shy.rgba(255, 255, 255, 5)
 	)
+	*/
 
 	a.quick.rect(
 		x: pos.x - 2
 		y: pos.y - 2
 		width: (p.width) * scale + 4
 		height: (p.height) * scale + 4
-		color: shy.rgba(255, 255, 255, 25)
+		color: shy.rgba(0, 0, 0, 255 / 3)
 		fills: .body
 	)
 
-	if p.grabbed != shy.null && a.mouse.is_button_down(.left) {
+	if p.grabbed != 0 {
 		m := shy.vec2(f32(a.mouse.x), a.mouse.y)
 		if rect := p.get_quadrant(m) {
+			// Highlight quadrant
 			a.quick.rect(
 				x: rect.x
 				y: rect.y
 				width: (rect.width)
 				height: (rect.height)
-				color: shy.rgba(255, 155, 255, 25)
+				color: shy.rgba(155, 155, 155, 25)
 				fills: .body
 			)
 		}
