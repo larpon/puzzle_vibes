@@ -115,7 +115,9 @@ pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
 
 	puzzle.scramble()!
 
-	println('${puzzle.pieces.len} pieces. Viewport: ${viewport.width}x${viewport.height} ${img.width}x${img.height} ${piece_size.width}x${piece_size.height} ${rem_w}x${rem_h} puzzle scale: ${puzzle.scale}')
+	$if debug ? {
+		println('${puzzle.pieces.len} pieces. Viewport: ${viewport.width}x${viewport.height} ${img.width}x${img.height} ${piece_size.width}x${piece_size.height} ${rem_w}x${rem_h} puzzle scale: ${puzzle.scale}')
+	}
 	return puzzle
 }
 
@@ -246,28 +248,25 @@ fn (mut p Puzzle) draw() {
 	// NOTE can be uncommented to live/debug scaling
 	// p.update_scale()
 
-	scale := p.scale
+	// scale := p.scale
+	// pos := shy.vec2(p.x, p.y)
 
-	pos := shy.vec2(p.x, p.y)
+	// 	a.quick.image(
+	// 		x: pos.x
+	// 		y: pos.y
+	// 		uri: p.image.uri()
+	// 		scale: scale
+	// 		color: shy.rgba(255, 255, 255, 5)
+	// 	)
 
-	/*
-	a.quick.image(
-		x: pos.x
-		y: pos.y
-		uri: p.image.uri()
-		scale: scale
-		color: shy.rgba(255, 255, 255, 5)
-	)
-	*/
-
-	a.quick.rect(
-		x: pos.x - 2
-		y: pos.y - 2
-		width: (p.width) * scale + 4
-		height: (p.height) * scale + 4
-		color: shy.rgba(0, 0, 0, 255 / 3)
-		fills: .body
-	)
+	// 	a.quick.rect(
+	// 		x: pos.x - 2
+	// 		y: pos.y - 2
+	// 		width: (p.width) * scale + 4
+	// 		height: (p.height) * scale + 4
+	// 		color: shy.rgba(0, 0, 0, 255 / 3)
+	// 		fills: .body
+	// 	)
 
 	if p.grabbed != 0 {
 		m := shy.vec2(f32(a.mouse.x), a.mouse.y)
