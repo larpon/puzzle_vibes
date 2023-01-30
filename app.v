@@ -53,6 +53,14 @@ pub fn (mut a App) init() ! {
 		height: 3
 	}
 
+	/*
+	mut sound_asset := a.easy.load(
+		uri: a.asset('sfx/take.wav')
+	)!
+	a.sound = sound_asset.to[shy.Sound](shy.SoundOptions{
+		max_repeats: 4
+	})!*/
+
 	viewport := a.canvas.to_rect()
 
 	a.puzzle = new_puzzle(
@@ -62,14 +70,14 @@ pub fn (mut a App) init() ! {
 		dimensions: dim
 	)!
 
-	a.register_button_handlers()!
+	a.bind_button_handlers()!
 
 	// Menu
 	a.start_button = &MenuButton{
 		a: a
 		label: 'START'
-		on_clicked: fn (mut button Button) bool {
-			mut a := button.a
+		on_clicked: fn [mut a] () bool {
+			mut button := a.start_button
 			a.puzzle.scramble() or { panic(err) }
 			a.shy.once(fn [mut a, mut button] () {
 				// println('${a.mode} -> .game')
@@ -78,11 +86,13 @@ pub fn (mut a App) init() ! {
 			}, 150)
 			return true
 		}
-		on_pressed: fn (mut button Button) bool {
+		on_pressed: fn [mut a] () bool {
+			mut button := a.start_button
 			button.scale = 0.98
 			return false
 		}
-		on_leave: fn (mut button Button) bool {
+		on_leave: fn [mut a] () bool {
+			mut button := a.start_button
 			button.scale = 1
 			return false
 		}
@@ -92,8 +102,7 @@ pub fn (mut a App) init() ! {
 	a.back_button = &BackButton{
 		a: a
 		label: 'QUIT'
-		on_clicked: fn (mut button Button) bool {
-			mut a := button.a
+		on_clicked: fn [mut a] () bool {
 			if a.mode == .menu {
 				mut events := a.shy.events()
 				events.send(shy.QuitEvent{
@@ -102,6 +111,7 @@ pub fn (mut a App) init() ! {
 					request: true
 				}) or {}
 			} else {
+				mut button := a.back_button
 				a.shy.once(fn [mut a, mut button] () {
 					// println('${a.mode} -> .game')
 					button.scale = 1
@@ -110,20 +120,22 @@ pub fn (mut a App) init() ! {
 			}
 			return true
 		}
-		on_pressed: fn (mut button Button) bool {
+		on_pressed: fn [mut a] () bool {
+			mut button := a.back_button
 			button.scale = 0.98
 			return false
 		}
-		on_leave: fn (mut button Button) bool {
+		on_leave: fn [mut a] () bool {
+			mut button := a.back_button
 			button.scale = 1
 			return false
 		}
 	}
 }
 
-pub fn (mut a App) register_button_handlers() ! {
-	a.mouse.on_button_down(fn [mut a] (mce shy.MouseButtonEvent) bool {
-		if mce.button != .left {
+pub fn (mut a App) bind_button_handlers() ! {
+	a.mouse.on_button_down(fn [mut a] (mbe shy.MouseButtonEvent) bool {
+		if mbe.button != .left {
 			return false
 		}
 		mouse := a.mouse
@@ -133,10 +145,10 @@ pub fn (mut a App) register_button_handlers() ! {
 		mut area := bb.Button.Rect
 		mut mouse_area := area.displaced_from(.center)
 		if mouse_area.contains(mouse.x, mouse.y) {
-			// println(mce.clicks)
+			// println(mbe.clicks)
 			bb.click_started = true
 			if bb.on_pressed != unsafe { nil } {
-				return bb.on_pressed(mut bb.Button)
+				return bb.on_pressed()
 			}
 		}
 
@@ -145,10 +157,10 @@ pub fn (mut a App) register_button_handlers() ! {
 			area = mb.Button.Rect
 			mouse_area = area.displaced_from(.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
-				// println(mce.clicks)
+				// println(mbe.clicks)
 				mb.click_started = true
 				if mb.on_pressed != unsafe { nil } {
-					return mb.on_pressed(mut mb.Button)
+					return mb.on_pressed()
 				}
 			}
 		}
@@ -156,7 +168,7 @@ pub fn (mut a App) register_button_handlers() ! {
 		return handled
 	})
 
-	a.mouse.on_motion(fn [mut a] (mce shy.MouseMotionEvent) bool {
+	a.mouse.on_motion(fn [mut a] (mme shy.MouseMotionEvent) bool {
 		mouse := a.mouse
 
 		mut handled := false
@@ -166,12 +178,12 @@ pub fn (mut a App) register_button_handlers() ! {
 		if mouse_area.contains(mouse.x, mouse.y) {
 			bb.is_hovered = true
 			if bb.on_hovered != unsafe { nil } {
-				handled = bb.on_hovered(mut bb.Button)
+				handled = bb.on_hovered()
 			}
 		} else {
 			bb.is_hovered = false
 			if bb.on_leave != unsafe { nil } {
-				handled = bb.on_leave(mut bb.Button)
+				handled = bb.on_leave()
 			}
 		}
 		if handled {
@@ -185,12 +197,12 @@ pub fn (mut a App) register_button_handlers() ! {
 			if mouse_area.contains(mouse.x, mouse.y) {
 				mb.is_hovered = true
 				if mb.on_hovered != unsafe { nil } {
-					handled = mb.on_hovered(mut mb.Button)
+					handled = mb.on_hovered()
 				}
 			} else {
 				mb.is_hovered = false
 				if mb.on_leave != unsafe { nil } {
-					handled = mb.on_leave(mut mb.Button)
+					handled = mb.on_leave()
 				}
 			}
 		}
@@ -198,8 +210,8 @@ pub fn (mut a App) register_button_handlers() ! {
 		return handled
 	})
 
-	a.mouse.on_button_click(fn [mut a] (mce shy.MouseButtonEvent) bool {
-		if mce.button != .left {
+	a.mouse.on_button_click(fn [mut a] (mbe shy.MouseButtonEvent) bool {
+		if mbe.button != .left {
 			return false
 		}
 		mouse := a.mouse
@@ -211,14 +223,14 @@ pub fn (mut a App) register_button_handlers() ! {
 		mut area := bb.Button.Rect
 		mut mouse_area := area.displaced_from(.center)
 		if was_started && mouse_area.contains(mouse.x, mouse.y) {
-			// println(mce.clicks)
+			// println(mbe.clicks)
 			if bb.on_clicked != unsafe { nil } {
-				handled = bb.on_clicked(mut bb.Button)
+				handled = bb.on_clicked()
 			}
 		} else {
 			bb.is_hovered = false
 			if bb.on_leave != unsafe { nil } {
-				handled = bb.on_leave(mut bb.Button)
+				handled = bb.on_leave()
 			}
 		}
 		if handled {
@@ -232,9 +244,9 @@ pub fn (mut a App) register_button_handlers() ! {
 			area = mb.Button.Rect
 			mouse_area = area.displaced_from(.center)
 			if was_started && mouse_area.contains(mouse.x, mouse.y) {
-				// println(mce.clicks)
+				// println(mbe.clicks)
 				if mb.on_clicked != unsafe { nil } {
-					handled = mb.on_clicked(mut mb.Button)
+					handled = mb.on_clicked()
 				}
 			}
 		}
@@ -242,7 +254,7 @@ pub fn (mut a App) register_button_handlers() ! {
 			mut mb := a.start_button
 			mb.is_hovered = false
 			if mb.on_leave != unsafe { nil } {
-				handled = mb.on_leave(mut mb.Button)
+				handled = mb.on_leave()
 			}
 		}
 
@@ -250,11 +262,11 @@ pub fn (mut a App) register_button_handlers() ! {
 	})
 
 	// A click anywhere when the puzzle is solved goes back to menu
-	a.mouse.on_button_click(fn [mut a] (mce shy.MouseButtonEvent) bool {
+	a.mouse.on_button_click(fn [mut a] (mbe shy.MouseButtonEvent) bool {
 		if a.mode != .game {
 			return false
 		}
-		if mce.button != .left {
+		if mbe.button != .left {
 			return false
 		}
 		if a.puzzle.solved {
@@ -266,6 +278,7 @@ pub fn (mut a App) register_button_handlers() ! {
 	})
 }
 
+[markused]
 pub fn (mut a App) variable_update(dt f64) {
 	a.start_button.variable_update(dt)
 	a.back_button.variable_update(dt)
