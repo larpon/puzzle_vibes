@@ -158,7 +158,7 @@ fn (ims ImageSelector) draw() {
 
 	if ims.is_hovered {
 		button_wh := int(0.05 * area_center.width)
-		base_color := colors.blue
+		// base_color := colors.blue
 		// Left navigation button
 		l_rect := shy.Rect{
 			x: (shy.half * button_wh) + area_center.x - shy.half * area_center.width
@@ -166,18 +166,19 @@ fn (ims ImageSelector) draw() {
 			width: button_wh
 			height: button_wh
 		}
+		/*
+		Visual guide
 		a.quick.rect(
 			Rect: l_rect
 			origin: .center
 			color: base_color
 			// fills: .body
-			/*
-			stroke: shy.Stroke{
-				width: 3
-				color: border_color
-			}*/
+// 			stroke: shy.Stroke{
+// 				width: 3
+// 				color: border_color
+// 			}
 			scale: ims.scale
-		)
+		)*/
 		a.quick.triangle(
 			a: shy.vec2(l_rect.x, l_rect.y + shy.half * l_rect.height)
 			b: shy.vec2(l_rect.x + l_rect.width, l_rect.y)
@@ -196,18 +197,19 @@ fn (ims ImageSelector) draw() {
 			width: button_wh
 			height: button_wh
 		}
+		/*
+		Visual guide
 		a.quick.rect(
 			Rect: r_rect
 			origin: .center
 			color: base_color
 			// fills: .body
-			/*
-			stroke: shy.Stroke{
-				width: 3
-				color: border_color
-			}*/
+// 			stroke: shy.Stroke{
+// 				width: 3
+// 				color: border_color
+// 			}
 			scale: ims.scale
-		)
+		)*/
 		a.quick.triangle(
 			a: shy.vec2(r_rect.x, r_rect.y)
 			b: shy.vec2(r_rect.x + r_rect.width, r_rect.y + shy.half * r_rect.height)

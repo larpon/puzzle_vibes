@@ -56,26 +56,32 @@ pub fn (mut a App) init() ! {
 	a.ps = a.easy.new_particle_system(
 		width: a.canvas.width
 		height: a.canvas.height
-		pool: 300
+		pool: 2500
 	)
 
-	scale := f32(6.0)
-	a.ps.add(particle.Emitter{
+	design_factor := f32(1440) / a.canvas.width
+	scale := f32(2.0) * 1 / design_factor
+	a.ps.add(&particle.Emitter{
+		enabled: false // true
 		rate: 50
 		position: shy.vec2[f32](shy.half * a.canvas.width, shy.half * a.canvas.height)
-		velocity: particle.PointDirection{
-			point: shy.vec2[f32](0.0, -0.5 * scale * 0.5)
-			point_variation: shy.vec2[f32](0.2, 0.5)
+		velocity: particle.AngleDirection{
+			angle: 0
+			angle_variation: 360
+			magnitude: 15
+			magnitude_variation: 1
 		}
-		acceleration: particle.PointDirection{
-			point: shy.vec2[f32](0.0, -1.5 * scale * 0.5)
-			point_variation: shy.vec2[f32](0.4, 0.7)
+		acceleration: particle.AngleDirection{
+			angle: 0
+			angle_variation: 360
+			magnitude: -20
+			magnitude_variation: 2
 		}
 		start_size: shy.vec2[f32](30.0 * scale, 35 * scale)
 		size_variation: shy.vec2[f32](10.0 * scale, 10 * scale)
-		life_time: 2000
-		life_time_variation: 1000
-		movement_velocity: 40
+		life_time: 500 //* (1 / design_factor)
+		life_time_variation: 500 //* (1 / design_factor)
+		movement_velocity: 20 * (1 / design_factor)
 	})
 
 	a.ps.replace_default_painter(a.easy.image_particle_painter(
@@ -503,7 +509,29 @@ pub fn (mut a App) variable_update(dt f64) {
 
 	if a.image_selector.images.len > 0 {
 		mut emitters := a.ps.emitters()
+		design_factor := f32(1440) / a.canvas.width
+		scale := f32(2.0) * (1 / design_factor)
 		for mut em in emitters {
+			// TODO this is stupid
+			// We're adjusting values so effects look a-like in different screen-widths...
+			em.start_size = shy.vec2[f32](30.0 * scale, 35 * scale)
+			em.size_variation = shy.vec2[f32](10.0 * scale, 10 * scale)
+			// em.life_time = 1000 * (1 / design_factor)
+			// em.life_time_variation = 500 * (1 / design_factor)
+			em.movement_velocity = 20 * (1 / design_factor)
+			em.velocity = particle.AngleDirection{
+				angle: 0
+				angle_variation: 360
+				magnitude: 15 * (1 / design_factor)
+				magnitude_variation: 1 * (1 / design_factor)
+			}
+			em.acceleration = particle.AngleDirection{
+				angle: 0
+				angle_variation: 360
+				magnitude: -20 * (1 / design_factor)
+				magnitude_variation: 2 * (1 / design_factor)
+			}
+
 			em.position.x = a.image_selector.x
 			em.position.y = a.image_selector.y
 		}
@@ -581,7 +609,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 }
 
 pub fn (mut a App) render_game_frame(dt f64) {
-	mut design_factor := f32(1440) / a.window.width()
+	mut design_factor := f32(1440) / a.canvas.width
 	if design_factor == 0 {
 		design_factor = 1
 	}
@@ -722,6 +750,12 @@ fn (mut a App) select_next_image() {
 	if a.mode != .menu {
 		return
 	}
+	mut emitters := a.ps.emitters()
+	for i, mut em in emitters {
+		if i == 0 {
+			em.burst(400)
+		}
+	}
 	a.image_selector.next_image()
 	a.play_sfx_with_random_pitch('Whoosh')
 }
@@ -730,6 +764,18 @@ fn (mut a App) select_prev_image() {
 	if a.mode != .menu {
 		return
 	}
+	// TODO reference bug
+	// if mut emitter := a.ps.emitter_at_index(0) {
+	//	emitter.burst(100)
+	//}
+	// TODO
+	mut emitters := a.ps.emitters()
+	for i, mut em in emitters {
+		if i == 0 {
+			em.burst(400)
+		}
+	}
+
 	a.image_selector.prev_image()
 	a.play_sfx_with_random_pitch('Whoosh')
 }
@@ -740,6 +786,8 @@ pub fn (mut a App) event(e shy.Event) {
 
 	match e {
 		shy.KeyEvent {
+			a.on_menu_event_update(e)
+			a.on_game_event_update(e)
 			if e.state == .up {
 				return
 			}
@@ -747,51 +795,9 @@ pub fn (mut a App) event(e shy.Event) {
 			// kb := a.kbd
 			// alt_is_held := (kb.is_key_down(.lalt) || kb.is_key_down(.ralt))
 			match key {
-				.backspace {
-					a.mode = .menu
-				}
-				/*
 				.p {
-					mut s := a.music['River Meditation']
-					s.pause(!s.is_paused())
-				}*/
-				.left {
-					if a.mode == .menu {
-						a.select_prev_image()
-					}
-				}
-				.right {
-					if a.mode == .menu {
-						a.select_next_image()
-					}
-				}
-				/*
-				.up {
-					if a.mode == .menu {
-						a.image_selector.todo_rm = a.image_selector.todo_rm.next()
-						dump(a.image_selector.todo_rm)
-					}
-				}
-				.down {
-					if a.mode == .menu {
-						a.image_selector.todo_rm = a.image_selector.todo_rm.prev()
-						dump(a.image_selector.todo_rm)
-					}
-				}*/
-				.s {
-					if a.mode == .game {
-						a.puzzle.scramble(do_not_scramble_laid: true) or { panic(err) }
-					}
-					if a.mode == .menu {
-						a.start_game() or { panic(err) }
-						a.mode = .game
-					}
-				}
-				.a {
-					if a.mode == .game {
-						a.puzzle.auto_solve()
-						a.play_sfx('Cheering crowd')
-					}
+					// 					mut s := a.music['River Meditation']
+					// 					s.pause(!s.is_paused())
 				}
 				else {}
 			}
@@ -810,19 +816,49 @@ pub fn (mut a App) event(e shy.Event) {
 	}
 }
 
-type GameEvent = shy.MouseButtonEvent | shy.MouseMotionEvent
+type GameEvent = shy.KeyEvent | shy.MouseButtonEvent | shy.MouseMotionEvent
 
-type UIEvent = shy.MouseButtonEvent | shy.MouseMotionEvent
+type UIEvent = shy.KeyEvent | shy.MouseButtonEvent | shy.MouseMotionEvent
 
 // [live]
-pub fn (mut a App) on_menu_event_update(event_type UIEvent) {
+pub fn (mut a App) on_menu_event_update(e UIEvent) {
 	if a.mode != .menu {
 		return
 	}
-	// is_button_event := event_type is shy.MouseButtonEvent
+	match e {
+		shy.KeyEvent {
+			if e.state == .up {
+				return
+			}
+			key := e.key_code
+			match key {
+				.s {
+					a.start_game() or { panic(err) }
+					a.mode = .game
+				}
+				.left {
+					a.select_prev_image()
+				}
+				.right {
+					a.select_next_image()
+				}
+				/*
+				.up {
+					a.image_selector.todo_rm = a.image_selector.todo_rm.next()
+					dump(a.image_selector.todo_rm)
+				}
+				.down {
+					a.image_selector.todo_rm = a.image_selector.todo_rm.prev()
+					dump(a.image_selector.todo_rm)
+				}*/
+				else {}
+			}
+		}
+		else {}
+	}
 }
 
-pub fn (mut a App) on_game_event_update(event_type GameEvent) {
+pub fn (mut a App) on_game_event_update(e GameEvent) {
 	if a.mode != .game {
 		return
 	}
@@ -831,7 +867,30 @@ pub fn (mut a App) on_game_event_update(event_type GameEvent) {
 		return
 	}
 
-	is_button_event := event_type is shy.MouseButtonEvent
+	match e {
+		shy.KeyEvent {
+			if e.state == .up {
+				return
+			}
+			key := e.key_code
+			match key {
+				.backspace {
+					a.mode = .menu
+				}
+				.s {
+					a.puzzle.scramble(do_not_scramble_laid: true) or { panic(err) }
+				}
+				.a {
+					a.puzzle.auto_solve()
+					a.play_sfx('Cheering crowd')
+				}
+				else {}
+			}
+		}
+		else {}
+	}
+
+	is_button_event := e is shy.MouseButtonEvent
 
 	m := shy.vec2[f32](a.mouse.x, a.mouse.y)
 	mut solved := true
