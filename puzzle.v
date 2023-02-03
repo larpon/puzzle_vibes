@@ -51,6 +51,17 @@ mut:
 }
 
 pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
+	mut puzzle := &Puzzle{
+		app: pc.app
+	}
+	puzzle.init(pc)!
+
+	puzzle.scramble()!
+
+	return puzzle
+}
+
+pub fn (mut p Puzzle) init(pc PuzzleConfig) ! {
 	a := pc.app
 	viewport := pc.viewport
 	img := pc.image
@@ -69,18 +80,17 @@ pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
 
 	// dump(img)
 
-	mut puzzle := &Puzzle{
-		viewport: viewport
-		width: img.width
-		height: img.height
-		app: a
-		image: img
-		piece_size: piece_size
-		dim: dim
-	}
+	p.viewport = viewport
+	p.width = img.width
+	p.height = img.height
+	p.image = img
+	p.piece_size = piece_size
+	p.dim = dim
 
-	assert !isnil(puzzle.app)
+	assert !isnil(p.app)
 
+	p.pieces.clear()
+	p.pieces_map.clear()
 	mut pid := u32(1)
 	for x in 0 .. int(dim.width) {
 		for y in 0 .. int(dim.height) {
@@ -97,7 +107,7 @@ pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
 			pos := pos_solved
 			piece := &Piece{
 				app: a
-				puzzle: puzzle
+				puzzle: p
 				id: pid
 				xy: shy.vec2[u32](x, y)
 				pos: pos
@@ -106,19 +116,18 @@ pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
 			}
 			assert !isnil(piece.puzzle)
 			assert !isnil(piece.app)
-			puzzle.pieces << piece
-			puzzle.pieces_map['${piece.xy.x}${piece.xy.y}'] = piece
+			p.pieces << piece
+			p.pieces_map['${piece.xy.x}${piece.xy.y}'] = piece
 		}
 	}
-	assert puzzle.pieces.len == dim.width * dim.height
-	puzzle.set_viewport(viewport)
+	assert p.pieces.len == dim.width * dim.height
+	p.set_viewport(viewport)
 
-	puzzle.scramble()!
+	// p.scramble()!
 
 	$if debug ? {
-		println('${puzzle.pieces.len} pieces. Viewport: ${viewport.width}x${viewport.height} ${img.width}x${img.height} ${piece_size.width}x${piece_size.height} ${rem_w}x${rem_h} puzzle scale: ${puzzle.scale}')
+		println('${p.pieces.len} pieces. Viewport: ${viewport.width}x${viewport.height} ${img.width}x${img.height} ${piece_size.width}x${piece_size.height} ${rem_w}x${rem_h} puzzle scale: ${p.scale}')
 	}
-	return puzzle
 }
 
 pub fn (mut p Puzzle) reset() {
@@ -254,7 +263,7 @@ fn (mut p Puzzle) draw() {
 	// 	a.quick.image(
 	// 		x: pos.x
 	// 		y: pos.y
-	// 		uri: p.image.uri()
+	// 		source: p.image.source()
 	// 		scale: scale
 	// 		color: shy.rgba(255, 255, 255, 5)
 	// 	)
@@ -430,7 +439,7 @@ pub fn (p &Piece) draw() {
 	a.quick.image(
 		x: pos.x
 		y: pos.y
-		uri: p.puzzle.image.uri()
+		source: p.puzzle.image.source()
 		origin: .center
 		scale: scale
 		offset: offset
@@ -466,7 +475,7 @@ pub fn (p &Piece) draw() {
 		color.a = 127
 		a.quick.rect(
 			Rect: p.viewport_rect_raw()
-			fills: .outline
+			fills: .stroke
 			origin: .center
 			scale: grab_scale
 			// offset: offset

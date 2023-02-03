@@ -26,7 +26,7 @@ fn (b Button) draw() {
 
 	mut text := b.label
 	area := b.Rect
-	drawable_size := a.canvas
+	canvas_size := a.canvas
 	draw_scale := a.window.draw_factor()
 	mut bgcolor := shy.colors.shy.red
 	if b.is_hovered {
@@ -52,7 +52,7 @@ fn (b Button) draw() {
 		color: shy.rgba(127,127,127,180)
 	)*/
 
-	mut design_factor := f32(1440) / drawable_size.width
+	mut design_factor := f32(1440) / canvas_size.width
 	if design_factor == 0 {
 		design_factor = 1
 	}
@@ -81,13 +81,14 @@ fn (mb MenuButton) draw() {
 
 	mut text := mb.label
 	area := mb.Button.Rect
-	drawable_size := a.canvas
+	canvas_size := a.canvas
 	draw_scale := a.window.draw_factor()
-	mut bgcolor := shy.colors.shy.red
+	base_color := colors.blue
+	mut bgcolor := base_color
 	if mb.is_hovered {
-		bgcolor = shy.colors.shy.blue
+		bgcolor = base_color.lighter()
 		if mb.click_started {
-			bgcolor = shy.colors.shy.green
+			bgcolor = base_color.darker()
 		}
 	}
 
@@ -101,7 +102,7 @@ fn (mb MenuButton) draw() {
 		scale: mb.scale
 	)
 
-	mut design_factor := f32(1440) / drawable_size.width
+	mut design_factor := f32(1440) / canvas_size.width
 	if design_factor == 0 {
 		design_factor = 1
 	}
@@ -117,17 +118,6 @@ fn (mb MenuButton) draw() {
 	)
 }
 
-fn (mut mb MenuButton) variable_update(dt f64) {
-	drawable_size := mb.a.canvas
-	area := shy.Rect{
-		x: shy.half * drawable_size.width
-		y: shy.half * drawable_size.height + (drawable_size.height * 0.15)
-		width: 0.12 * drawable_size.width
-		height: 0.05 * drawable_size.width
-	}
-	mb.Button.Rect = area
-}
-
 // BackButton
 [heap]
 struct BackButton {
@@ -140,7 +130,7 @@ fn (bb BackButton) draw() {
 
 	mut text := bb.label
 	area := bb.Button.Rect
-	drawable_size := a.canvas
+	canvas_size := a.canvas
 	draw_scale := a.window.draw_factor()
 	mut color := shy.colors.shy.white
 	if bb.is_hovered {
@@ -150,7 +140,7 @@ fn (bb BackButton) draw() {
 		}
 	}
 
-	mut design_factor := f32(1440) / drawable_size.width
+	mut design_factor := f32(1440) / canvas_size.width
 	if design_factor == 0 {
 		design_factor = 1
 	}
@@ -168,13 +158,12 @@ fn (bb BackButton) draw() {
 }
 
 fn (mut bb BackButton) variable_update(dt f64) {
-	drawable_size := bb.a.canvas
+	canvas_size := bb.a.canvas
 	area := shy.Rect{
-		x: drawable_size.width - 10 - (0.07 * drawable_size.width) +
-			((0.07 * drawable_size.width) * 0.5)
-		y: 10 + ((0.08 * drawable_size.height) * 0.5)
-		width: 0.07 * drawable_size.width
-		height: 0.08 * drawable_size.height
+		x: canvas_size.width - 10 - (0.07 * canvas_size.width) + ((0.07 * canvas_size.width) * 0.5)
+		y: 10 + ((0.08 * canvas_size.height) * 0.5)
+		width: 0.07 * canvas_size.width
+		height: 0.08 * canvas_size.height
 	}
 	// println('Area: ${area}')
 	bb.Button.Rect = area

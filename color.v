@@ -5,7 +5,8 @@ module main
 
 import shy.lib as shy
 
-fn main() {
-	mut app := &App{}
-	shy.run[App](mut app)!
+const colors = Colors{}
+
+struct Colors {
+	blue shy.Color = shy.rgb(24, 143, 216)
 }

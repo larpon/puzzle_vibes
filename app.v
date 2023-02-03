@@ -1,13 +1,16 @@
-// Copyright(C) 2022 Lars Pontoppidan. All rights reserved.
+// Copyright(C) 2023 Lars Pontoppidan. All rights reserved.
 // Use of this source code is governed by an MIT license
 // that can be found in the LICENSE file.
 module main
 
 import os
+import rand
 import shy.lib as shy
 // import shy.vec
 // import shy.matrix
 import shy.embed
+import shy.particle
+import shy.easy
 
 enum Mode {
 	menu
@@ -15,14 +18,32 @@ enum Mode {
 }
 
 [heap]
-struct App {
+pub struct App {
 	embed.ExampleApp
 mut:
-	mode         Mode //= .game
-	puzzle       &Puzzle     = shy.null
-	start_button &MenuButton = shy.null
-	back_button  &BackButton = shy.null
-	is_starting  bool
+	mode           Mode //= .game
+	puzzle         &Puzzle        = shy.null
+	image_selector &ImageSelector = shy.null
+	start_button   &MenuButton    = shy.null
+	back_button    &BackButton    = shy.null
+	is_starting    bool
+	ps             &easy.ParticleSystem = shy.null
+	//
+	sfx   map[string]SFXInfo
+	music map[string]Music
+}
+
+fn (a App) play_sfx_with_random_pitch(entry string) {
+	a.quick.play(
+		source: a.asset('sfx/' + a.sfx[entry].file)
+		pitch: rand.f32_in_range(1, 3) or { 0.0 }
+	)
+}
+
+fn (a App) play_sfx(entry string) {
+	a.quick.play(
+		source: a.asset('sfx/' + a.sfx[entry].file)
+	)
 }
 
 [markused]
@@ -32,21 +53,116 @@ pub fn (mut a App) init() ! {
 	// win_size.width *= 0.5
 	// win_size.height *= 0.5
 
+	a.ps = a.easy.new_particle_system(
+		width: a.canvas.width
+		height: a.canvas.height
+		pool: 300
+	)
+
+	scale := f32(6.0)
+	a.ps.add(particle.Emitter{
+		rate: 50
+		position: shy.vec2[f32](shy.half * a.canvas.width, shy.half * a.canvas.height)
+		velocity: particle.PointDirection{
+			point: shy.vec2[f32](0.0, -0.5 * scale * 0.5)
+			point_variation: shy.vec2[f32](0.2, 0.5)
+		}
+		acceleration: particle.PointDirection{
+			point: shy.vec2[f32](0.0, -1.5 * scale * 0.5)
+			point_variation: shy.vec2[f32](0.4, 0.7)
+		}
+		start_size: shy.vec2[f32](30.0 * scale, 35 * scale)
+		size_variation: shy.vec2[f32](10.0 * scale, 10 * scale)
+		life_time: 2000
+		life_time_variation: 1000
+		movement_velocity: 40
+	})
+
+	a.ps.replace_default_painter(a.easy.image_particle_painter(
+		color: shy.rgba(255, 255, 255, 127)
+	))
+
 	a.quick.load(shy.ImageOptions{
-		uri: a.asset(default_image)
+		source: a.asset(default_image)
+	})!
+
+	mut puzzle_images := []ImageSelectorEntry{}
+	puzzle_images << ImageSelectorEntry{
+		name: 'Pixel Art Ruins'
+		source: a.asset(default_image)
+	}
+	for e in image_db {
+		image := a.asset(os.join_path('images', e.file))
+		entry := ImageSelectorEntry{
+			name: e.name
+			source: image
+		}
+		if entry !in puzzle_images {
+			a.quick.load(shy.ImageOptions{
+				source: image
+			})!
+			puzzle_images << entry
+		}
+	}
+
+	a.quick.load(shy.ImageOptions{
+		source: a.asset('images/puzzle_vibes_logo.png')
 	})!
 
 	a.quick.load(shy.ImageOptions{
-		uri: a.asset('images/puzzle_vibes_logo.png')
-	})!
-
-	a.quick.load(shy.ImageOptions{
-		uri: a.asset('images/seamless_wooden_texture.jpg')
+		source: a.asset('images/seamless_wooden_texture.jpg')
 		wrap_u: .repeat
 		wrap_v: .repeat
 	})!
 
+	// 	mut asset := a.easy.load(source: a.asset('music/River Meditation.mp3'))!
+	// 	a.music['River Meditation'] = asset.to[shy.Sound](shy.SoundOptions{})!
+
+	for e in music_db {
+		music := a.asset(os.join_path('music', e.file))
+		mut asset := a.easy.load(source: music)!
+		mut sound := asset.to[shy.Sound](shy.SoundOptions{})!
+		sound.on_end = fn (sound shy.Sound) {
+			// println('sound id: ${sound.id} ended')
+			app := sound.asset.shy.app[App]()
+			// println('Restarting River Meditation')
+			if app.music.len > 0 {
+				keys := app.music.keys()
+				next := rand.int_in_range(0, keys.len) or { 0 }
+				app.music[keys[next]].sound.play()
+			}
+		}
+		a.music[e.name] = Music{
+			info: e
+			sound: sound
+		}
+	}
+	a.music['River Meditation'].sound.play()
+
+	// 	a.music['River Meditation'].on_start = fn (sound shy.Sound) {
+	// 		println('River Meditation started sound id: ${sound.id}')
+	// 	}
+	// 	a.music['River Meditation'].on_pause = fn (sound shy.Sound, paused bool) {
+	// 		println('River Meditation paused:${paused} sound id: ${sound.id}')
+	// 	}
+	// 	a.music['River Meditation'].on_end = fn (sound shy.Sound) {
+	// 		println('River Meditation ended sound id: ${sound.id}')
+	// 		app := sound.asset.shy.app[App]()
+	// 		println('Restarting River Meditation')
+	// 		app.music['River Meditation'].play()
+	// 	}
+	// 	a.music['River Meditation'].play()
+
 	img := a.assets.get[shy.Image](a.asset(default_image))!
+
+	for e in sfx_db {
+		sfx := a.asset(os.join_path('sfx', e.file))
+		a.sfx[e.name] = e
+		a.quick.load(shy.SoundOptions{
+			source: sfx
+			max_repeats: 3
+		})!
+	}
 
 	dim := shy.Size{
 		width: 3
@@ -55,7 +171,7 @@ pub fn (mut a App) init() ! {
 
 	/*
 	mut sound_asset := a.easy.load(
-		uri: a.asset('sfx/take.wav')
+		source: a.asset('sfx/take.wav')
 	)!
 	a.sound = sound_asset.to[shy.Sound](shy.SoundOptions{
 		max_repeats: 4
@@ -78,7 +194,7 @@ pub fn (mut a App) init() ! {
 		label: 'START'
 		on_clicked: fn [mut a] () bool {
 			mut button := a.start_button
-			a.puzzle.scramble() or { panic(err) }
+			a.start_game() or { panic(err) }
 			a.shy.once(fn [mut a, mut button] () {
 				// println('${a.mode} -> .game')
 				button.scale = 1
@@ -131,6 +247,47 @@ pub fn (mut a App) init() ! {
 			return false
 		}
 	}
+
+	a.image_selector = &ImageSelector{
+		a: a
+		label: 'Select a puzzle'
+		images: puzzle_images
+		on_clicked: fn [mut a] () bool {
+			if a.mode == .menu {
+				ims_rect := a.image_selector.de_origin_rect()
+				left_side := shy.Rect{
+					x: ims_rect.x
+					y: ims_rect.y
+					width: shy.half * ims_rect.width
+					height: ims_rect.height
+				}
+				// 				right_side := shy.Rect{
+				// 					x: ims_rect.x + shy.half * ims_rect.width
+				// 					y: ims_rect.y
+				// 					width:shy.half * ims_rect.width
+				// 					height: ims_rect.height
+				// 				}
+				if left_side.contains(a.mouse.x, a.mouse.y) {
+					a.select_prev_image()
+				} else {
+					a.select_next_image()
+				}
+				return true
+			}
+			return false
+		}
+		/*
+		on_pressed: fn [mut a] () bool {
+			mut button := a.back_button
+			button.scale = 0.98
+			return false
+		}
+		on_leave: fn [mut a] () bool {
+			mut button := a.back_button
+			button.scale = 1
+			return false
+		}*/
+	}
 }
 
 pub fn (mut a App) bind_button_handlers() ! {
@@ -161,6 +318,17 @@ pub fn (mut a App) bind_button_handlers() ! {
 				mb.click_started = true
 				if mb.on_pressed != unsafe { nil } {
 					return mb.on_pressed()
+				}
+			}
+
+			mut ims := a.image_selector
+			area = ims.Rect
+			mouse_area = area.displaced_from(.center)
+			if mouse_area.contains(mouse.x, mouse.y) {
+				// println(imse.clicks)
+				ims.click_started = true
+				if ims.on_pressed != unsafe { nil } {
+					return ims.on_pressed()
 				}
 			}
 		}
@@ -205,6 +373,21 @@ pub fn (mut a App) bind_button_handlers() ! {
 					handled = mb.on_leave()
 				}
 			}
+
+			mut ims := a.image_selector
+			area = ims.Rect
+			mouse_area = area.displaced_from(.center)
+			if mouse_area.contains(mouse.x, mouse.y) {
+				ims.is_hovered = true
+				if ims.on_hovered != unsafe { nil } {
+					handled = ims.on_hovered()
+				}
+			} else {
+				ims.is_hovered = false
+				if ims.on_leave != unsafe { nil } {
+					handled = ims.on_leave()
+				}
+			}
 		}
 
 		return handled
@@ -237,24 +420,45 @@ pub fn (mut a App) bind_button_handlers() ! {
 			return handled
 		}
 
+		mut mb_mouse_area := shy.Rect{}
+		mut ims_mouse_area := shy.Rect{}
 		if a.mode == .menu {
 			mut mb := a.start_button
 			was_started = mb.click_started
 			mb.click_started = false
 			area = mb.Button.Rect
-			mouse_area = area.displaced_from(.center)
-			if was_started && mouse_area.contains(mouse.x, mouse.y) {
+			mb_mouse_area = area.displaced_from(.center)
+			if was_started && mb_mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
 				if mb.on_clicked != unsafe { nil } {
 					handled = mb.on_clicked()
 				}
 			}
+
+			mut ims := a.image_selector
+			was_started = ims.click_started
+			ims.click_started = false
+			area = ims.Rect
+			ims_mouse_area = area.displaced_from(.center)
+			if was_started && ims_mouse_area.contains(mouse.x, mouse.y) {
+				// println(imse.clicks)
+				if ims.on_clicked != unsafe { nil } {
+					handled = ims.on_clicked()
+				}
+			}
 		}
-		if !(was_started && mouse_area.contains(mouse.x, mouse.y)) {
+		if !(was_started && mb_mouse_area.contains(mouse.x, mouse.y)) {
 			mut mb := a.start_button
 			mb.is_hovered = false
 			if mb.on_leave != unsafe { nil } {
 				handled = mb.on_leave()
+			}
+		}
+		if !(was_started && ims_mouse_area.contains(mouse.x, mouse.y)) {
+			mut ims := a.image_selector
+			ims.is_hovered = false
+			if ims.on_leave != unsafe { nil } {
+				handled = ims.on_leave()
 			}
 		}
 
@@ -280,7 +484,31 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 [markused]
 pub fn (mut a App) variable_update(dt f64) {
-	a.start_button.variable_update(dt)
+	a.ExampleApp.variable_update(dt)
+	// Placement of Start button
+	canvas_size := a.canvas
+	a.start_button.Button.Rect = shy.Rect{
+		x: shy.half * canvas_size.width
+		y: 0.85 * canvas_size.height //+ (canvas_size.height * 0.15)
+		width: 0.12 * canvas_size.width
+		height: 0.05 * canvas_size.width
+	}
+
+	a.image_selector.Rect = shy.Rect{
+		x: shy.half * canvas_size.width
+		y: shy.half * canvas_size.height + (canvas_size.height * 0.05)
+		width: 0.40 * canvas_size.width
+		height: 0.2 * canvas_size.width
+	}
+
+	if a.image_selector.images.len > 0 {
+		mut emitters := a.ps.emitters()
+		for mut em in emitters {
+			em.position.x = a.image_selector.x
+			em.position.y = a.image_selector.y
+		}
+	}
+
 	a.back_button.variable_update(dt)
 	if a.mode == .menu {
 		a.back_button.label = 'QUIT'
@@ -307,16 +535,16 @@ pub fn (mut a App) frame(dt f64) {
 	a.back_button.draw()
 }
 
-// [live]
+//[live]
 pub fn (mut a App) render_menu_frame(dt f64) {
-	drawable_size := a.canvas
-	// println(drawable_size)
+	canvas_size := a.canvas
+	// println(canvas_size)
 
 	// Background
 	a.quick.image(
 		// x: 0
 		// y: 0
-		uri: a.asset('images/seamless_wooden_texture.jpg')
+		source: a.asset('images/seamless_wooden_texture.jpg')
 		width: a.canvas.width
 		height: a.canvas.height
 		fill_mode: .tile
@@ -324,10 +552,10 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 
 	/*
 	a.quick.rect(
-		x: shy.half * drawable_size.width
-		y: shy.half * drawable_size.height
-		width: drawable_size.width
-		height: drawable_size.height
+		x: shy.half * canvas_size.width
+		y: shy.half * canvas_size.height
+		width: canvas_size.width
+		height: canvas_size.height
 		origin: .center
 		color: bgcolor
 		stroke: shy.Stroke{
@@ -335,15 +563,19 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		}
 	)*/
 
+	a.ps.draw()
+
 	// Logo
 	a.quick.image(
-		x: shy.half * drawable_size.width
-		y: shy.half * drawable_size.height
-		uri: a.asset('images/puzzle_vibes_logo.png')
+		x: shy.half * canvas_size.width
+		y: shy.half * canvas_size.height
+		source: a.asset('images/puzzle_vibes_logo.png')
 		origin: .center
-		offset: shy.vec2[f32](0, -(drawable_size.height * 0.25))
-		scale: (a.canvas.width / 1920) * 0.7
+		offset: shy.vec2[f32](0, -(canvas_size.height * 0.32))
+		scale: (a.canvas.width / 1920) * 0.45
 	)
+
+	a.image_selector.draw()
 
 	a.start_button.draw()
 }
@@ -358,7 +590,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 	a.quick.image(
 		// x: 0
 		// y: 0
-		uri: a.asset('images/seamless_wooden_texture.jpg')
+		source: a.asset('images/seamless_wooden_texture.jpg')
 		width: a.canvas.width
 		height: a.canvas.height
 		fill_mode: .tile
@@ -407,7 +639,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 					width: int(mouse_area.width)
 					height: int(mouse_area.height)
 					color: color
-					fills: .outline
+					fills: .stroke
 					stroke: shy.Stroke{
 						color: color
 					}
@@ -460,15 +692,52 @@ pub fn (mut a App) render_game_frame(dt f64) {
 // asset returns a `string` with the full path to the asset.
 // asset unifies locating project assets.
 pub fn (a App) asset(relative_path string) string {
+	path := relative_path // relative_path.replace('\\','/')
 	$if wasm32_emscripten {
-		return relative_path
+		return path
 	}
-	return os.resource_abs_path(os.join_path('assets', relative_path))
+	return os.resource_abs_path(os.join_path('assets', path))
+}
+
+pub fn (mut a App) start_game() ! {
+	dim := shy.Size{
+		width: 3
+		height: 3
+	}
+	imse := a.image_selector.get_selected_image() or {
+		return error('Failed getting selected image')
+	}
+	img := a.assets.get[shy.Image](imse.source)!
+	a.puzzle.init(
+		app: a
+		viewport: a.canvas.to_rect()
+		image: img
+		dimensions: dim
+	)!
+
+	a.puzzle.scramble()!
+}
+
+fn (mut a App) select_next_image() {
+	if a.mode != .menu {
+		return
+	}
+	a.image_selector.next_image()
+	a.play_sfx_with_random_pitch('Whoosh')
+}
+
+fn (mut a App) select_prev_image() {
+	if a.mode != .menu {
+		return
+	}
+	a.image_selector.prev_image()
+	a.play_sfx_with_random_pitch('Whoosh')
 }
 
 [markused]
 pub fn (mut a App) event(e shy.Event) {
 	a.ExampleApp.event(e)
+
 	match e {
 		shy.KeyEvent {
 			if e.state == .up {
@@ -481,16 +750,48 @@ pub fn (mut a App) event(e shy.Event) {
 				.backspace {
 					a.mode = .menu
 				}
+				/*
+				.p {
+					mut s := a.music['River Meditation']
+					s.pause(!s.is_paused())
+				}*/
+				.left {
+					if a.mode == .menu {
+						a.select_prev_image()
+					}
+				}
+				.right {
+					if a.mode == .menu {
+						a.select_next_image()
+					}
+				}
+				/*
+				.up {
+					if a.mode == .menu {
+						a.image_selector.todo_rm = a.image_selector.todo_rm.next()
+						dump(a.image_selector.todo_rm)
+					}
+				}
+				.down {
+					if a.mode == .menu {
+						a.image_selector.todo_rm = a.image_selector.todo_rm.prev()
+						dump(a.image_selector.todo_rm)
+					}
+				}*/
 				.s {
 					if a.mode == .game {
 						a.puzzle.scramble(do_not_scramble_laid: true) or { panic(err) }
 					}
 					if a.mode == .menu {
+						a.start_game() or { panic(err) }
 						a.mode = .game
 					}
 				}
 				.a {
-					a.puzzle.auto_solve()
+					if a.mode == .game {
+						a.puzzle.auto_solve()
+						a.play_sfx('Cheering crowd')
+					}
 				}
 				else {}
 			}
@@ -518,7 +819,6 @@ pub fn (mut a App) on_menu_event_update(event_type UIEvent) {
 	if a.mode != .menu {
 		return
 	}
-
 	// is_button_event := event_type is shy.MouseButtonEvent
 }
 
@@ -584,6 +884,8 @@ pub fn (mut a App) on_game_event_update(event_type GameEvent) {
 		}
 	}
 	if solved {
+		// println('SOLVED!')
+		a.play_sfx('Cheering crowd')
 		a.puzzle.reset()
 	}
 }
