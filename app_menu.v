@@ -48,6 +48,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 	a.image_selector.draw()
 
 	a.start_button.draw()
+	a.options_button.draw()
 }
 
 // [live]

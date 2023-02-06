@@ -13,6 +13,7 @@ import shy.easy
 enum Mode {
 	menu
 	game
+	options
 }
 
 [heap]
@@ -20,10 +21,13 @@ pub struct App {
 	embed.ExampleApp
 mut:
 	mode           Mode //= .game // nice if you're debugging game play
-	puzzle         &Puzzle        = shy.null
-	image_selector &ImageSelector = shy.null
-	start_button   &MenuButton    = shy.null
-	back_button    &BackButton    = shy.null
+	puzzle         &Puzzle            = shy.null
+	puzzle_dim     shy.Size           = shy.size(3, 3)
+	image_selector &ImageSelector     = shy.null
+	dim_selector   &DimensionSelector = shy.null
+	start_button   &MenuButton        = shy.null
+	back_button    &BackButton        = shy.null
+	options_button &OptionsButton     = shy.null
 	is_starting    bool
 	ps             &easy.ParticleSystem = shy.null
 	//
@@ -233,6 +237,9 @@ pub fn (mut a App) init() ! {
 					request: true
 				}) or {}
 			} else {
+				if a.mode == .options {
+					a.puzzle_dim = a.dim_selector.dim
+				}
 				mut button := a.back_button
 				a.shy.once(fn [mut a, mut button] () {
 					// println('${a.mode} -> .game')
@@ -250,6 +257,35 @@ pub fn (mut a App) init() ! {
 		}
 		on_leave: fn [mut a] () bool {
 			mut button := a.back_button
+			button.scale = 1
+			return false
+		}
+	}
+
+	a.options_button = &OptionsButton{
+		a: a
+		label: 'OPTIONS'
+		on_clicked: fn [mut a] () bool {
+			if a.mode == .menu {
+				mut button := a.options_button
+				a.shy.once(fn [mut a, mut button] () {
+					// println('${a.mode} -> .options')
+					a.dim_selector.dim = a.puzzle_dim
+					button.scale = 1
+					a.mode = .options
+				}, 150)
+				return true
+			}
+			return false
+		}
+		on_pressed: fn [mut a] () bool {
+			a.play_sfx('Squish')
+			mut button := a.options_button
+			button.scale = 0.98
+			return false
+		}
+		on_leave: fn [mut a] () bool {
+			mut button := a.options_button
 			button.scale = 1
 			return false
 		}
@@ -280,6 +316,27 @@ pub fn (mut a App) init() ! {
 					a.select_next_image()
 				}
 				return true
+			}
+			return false
+		}
+		/*
+		on_pressed: fn [mut a] () bool {
+			mut button := a.back_button
+			button.scale = 0.98
+			return false
+		}
+		on_leave: fn [mut a] () bool {
+			mut button := a.back_button
+			button.scale = 1
+			return false
+		}*/
+	}
+
+	a.dim_selector = &DimensionSelector{
+		a: a
+		label: 'Puzzle dimensions ${a.puzzle_dim.width}x${a.puzzle_dim.height}'
+		on_clicked: fn [mut a] () bool {
+			if a.mode == .options {
 			}
 			return false
 		}
@@ -328,6 +385,17 @@ pub fn (mut a App) bind_button_handlers() ! {
 				}
 			}
 
+			mut ob := a.options_button
+			area = ob.Button.Rect
+			mouse_area = area.displaced_from(.center)
+			if mouse_area.contains(mouse.x, mouse.y) {
+				// println(mbe.clicks)
+				ob.click_started = true
+				if ob.on_pressed != unsafe { nil } {
+					return ob.on_pressed()
+				}
+			}
+
 			mut ims := a.image_selector
 			area = ims.Rect
 			mouse_area = area.displaced_from(.center)
@@ -336,6 +404,19 @@ pub fn (mut a App) bind_button_handlers() ! {
 				ims.click_started = true
 				if ims.on_pressed != unsafe { nil } {
 					return ims.on_pressed()
+				}
+			}
+		}
+
+		if a.mode == .options {
+			mut dims := a.dim_selector
+			area = dims.Rect
+			mouse_area = area.displaced_from(.center)
+			if mouse_area.contains(mouse.x, mouse.y) {
+				// println(imse.clicks)
+				dims.click_started = true
+				if dims.on_pressed != unsafe { nil } {
+					return dims.on_pressed()
 				}
 			}
 		}
@@ -378,6 +459,21 @@ pub fn (mut a App) bind_button_handlers() ! {
 				mb.is_hovered = false
 				if mb.on_leave != unsafe { nil } {
 					handled = mb.on_leave()
+				}
+			}
+
+			mut ob := a.options_button
+			area = ob.Button.Rect
+			mouse_area = area.displaced_from(.center)
+			if mouse_area.contains(mouse.x, mouse.y) {
+				ob.is_hovered = true
+				if ob.on_hovered != unsafe { nil } {
+					handled = ob.on_hovered()
+				}
+			} else {
+				ob.is_hovered = false
+				if ob.on_leave != unsafe { nil } {
+					handled = ob.on_leave()
 				}
 			}
 
@@ -427,6 +523,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			return handled
 		}
 
+		mut ob_mouse_area := shy.Rect{}
 		mut mb_mouse_area := shy.Rect{}
 		mut ims_mouse_area := shy.Rect{}
 		if a.mode == .menu {
@@ -439,6 +536,18 @@ pub fn (mut a App) bind_button_handlers() ! {
 				// println(mbe.clicks)
 				if mb.on_clicked != unsafe { nil } {
 					handled = mb.on_clicked()
+				}
+			}
+
+			mut ob := a.options_button
+			was_started = ob.click_started
+			ob.click_started = false
+			area = ob.Button.Rect
+			ob_mouse_area = area.displaced_from(.center)
+			if was_started && ob_mouse_area.contains(mouse.x, mouse.y) {
+				// println(mbe.clicks)
+				if ob.on_clicked != unsafe { nil } {
+					handled = ob.on_clicked()
 				}
 			}
 
@@ -459,6 +568,13 @@ pub fn (mut a App) bind_button_handlers() ! {
 			mb.is_hovered = false
 			if mb.on_leave != unsafe { nil } {
 				handled = mb.on_leave()
+			}
+		}
+		if !(was_started && ob_mouse_area.contains(mouse.x, mouse.y)) {
+			mut ob := a.options_button
+			ob.is_hovered = false
+			if ob.on_leave != unsafe { nil } {
+				handled = ob.on_leave()
 			}
 		}
 		if !(was_started && ims_mouse_area.contains(mouse.x, mouse.y)) {
@@ -508,6 +624,13 @@ pub fn (mut a App) variable_update(dt f64) {
 		height: 0.2 * canvas_size.width
 	}
 
+	a.dim_selector.Rect = shy.Rect{
+		x: shy.half * canvas_size.width
+		y: shy.half * canvas_size.height + (canvas_size.height * 0.05)
+		width: 0.4 * canvas_size.width
+		height: 0.2 * canvas_size.width
+	}
+
 	if a.image_selector.images.len > 0 {
 		mut emitters := a.ps.emitters()
 		design_factor := f32(1440) / a.canvas.width
@@ -538,6 +661,7 @@ pub fn (mut a App) variable_update(dt f64) {
 		}
 	}
 
+	a.options_button.variable_update(dt)
 	a.back_button.variable_update(dt)
 	if a.mode == .menu {
 		a.back_button.label = 'QUIT'
@@ -558,6 +682,9 @@ pub fn (mut a App) frame(dt f64) {
 		}
 		.menu {
 			a.render_menu_frame(dt)
+		}
+		.options {
+			a.render_options_frame(dt)
 		}
 	}
 	// a.draw.pop_matrix()
@@ -684,10 +811,8 @@ pub fn (a App) asset(relative_path string) string {
 }
 
 pub fn (mut a App) start_game() ! {
-	dim := shy.Size{
-		width: 3
-		height: 3
-	}
+	a.puzzle_dim = a.dim_selector.dim
+
 	imse := a.image_selector.get_selected_image() or {
 		return error('Failed getting selected image')
 	}
@@ -696,7 +821,7 @@ pub fn (mut a App) start_game() ! {
 		app: a
 		viewport: a.canvas.to_rect()
 		image: img
-		dimensions: dim
+		dimensions: a.puzzle_dim
 	)!
 
 	a.puzzle.scramble()!
@@ -743,6 +868,7 @@ pub fn (mut a App) event(e shy.Event) {
 	match e {
 		shy.KeyEvent {
 			a.on_menu_event_update(e)
+			a.on_options_event_update(e)
 			a.on_game_event_update(e)
 			if e.state == .up {
 				return

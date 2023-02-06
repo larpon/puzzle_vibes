@@ -168,3 +168,54 @@ fn (mut bb BackButton) variable_update(dt f64) {
 	// println('Area: ${area}')
 	bb.Button.Rect = area
 }
+
+// OptionsButton
+[heap]
+struct OptionsButton {
+	Button
+}
+
+fn (ob OptionsButton) draw() {
+	// bb.Button.draw()
+	a := ob.a
+
+	mut text := ob.label
+	area := ob.Button.Rect
+	canvas_size := a.canvas
+	draw_scale := a.window.draw_factor()
+	mut color := shy.colors.shy.white
+	if ob.is_hovered {
+		color.a = 200 // shy.colors.shy.blue
+		if ob.click_started {
+			color.a = 127 // shy.colors.shy.green
+		}
+	}
+
+	mut design_factor := f32(1440) / canvas_size.width
+	if design_factor == 0 {
+		design_factor = 1
+	}
+	font_size_factor := 1 / design_factor * draw_scale * ob.scale
+
+	a.quick.text(
+		x: area.x
+		y: area.y
+		align: .center
+		origin: .center
+		color: color
+		size: 42 * font_size_factor
+		text: text
+	)
+}
+
+fn (mut ob OptionsButton) variable_update(dt f64) {
+	canvas_size := ob.a.canvas
+	area := shy.Rect{
+		x: 10 + (0.04 * canvas_size.width) + ((0.04 * canvas_size.width) * 0.5)
+		y: 10 + ((0.08 * canvas_size.height) * 0.5)
+		width: 0.06 * canvas_size.width
+		height: 0.08 * canvas_size.height
+	}
+	// println('Area: ${area}')
+	ob.Button.Rect = area
+}
