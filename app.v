@@ -270,8 +270,8 @@ pub fn (mut a App) init() ! {
 				mut button := a.options_button
 				a.shy.once(fn [mut a, mut button] () {
 					// println('${a.mode} -> .options')
-					a.dim_selector.dim = a.puzzle_dim
 					button.scale = 1
+					a.dim_selector.dim = a.puzzle_dim
 					a.mode = .options
 				}, 150)
 				return true
@@ -334,18 +334,28 @@ pub fn (mut a App) init() ! {
 
 	a.dim_selector = &DimensionSelector{
 		a: a
-		label: 'Puzzle dimensions ${a.puzzle_dim.width}x${a.puzzle_dim.height}'
+		label: '${a.puzzle_dim.width:.0f}x${a.puzzle_dim.height:.0f} Puzzle, ${int(a.puzzle_dim.area())} pieces'
+		/*
 		on_clicked: fn [mut a] () bool {
 			if a.mode == .options {
+				cell := a.dim_selector.to_cell()
+			}
+			return false
+		}*/
+		on_pressed: fn [mut a] () bool {
+			if a.mode == .options {
+				if cell := a.dim_selector.to_cell(shy.vec2[f32](a.mouse.x, a.mouse.y)) {
+					a.dim_selector.dim = shy.Size{
+						width: cell.x
+						height: cell.y
+					}
+					a.dim_selector.label = '${a.dim_selector.dim.width:.0f}x${a.dim_selector.dim.height:.0f} Puzzle, ${int(a.dim_selector.dim.area())} pieces'
+					// println(cell)
+				}
 			}
 			return false
 		}
 		/*
-		on_pressed: fn [mut a] () bool {
-			mut button := a.back_button
-			button.scale = 0.98
-			return false
-		}
 		on_leave: fn [mut a] () bool {
 			mut button := a.back_button
 			button.scale = 1
@@ -493,6 +503,22 @@ pub fn (mut a App) bind_button_handlers() ! {
 			}
 		}
 
+		if a.mode == .options {
+			mut dims := a.dim_selector
+			area = dims.Rect
+			mouse_area = area.displaced_from(.center)
+			if mouse_area.contains(mouse.x, mouse.y) {
+				dims.is_hovered = true
+				if dims.on_hovered != unsafe { nil } {
+					handled = dims.on_hovered()
+				}
+			} else {
+				dims.is_hovered = false
+				if dims.on_leave != unsafe { nil } {
+					handled = dims.on_leave()
+				}
+			}
+		}
 		return handled
 	})
 
@@ -526,6 +552,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 		mut ob_mouse_area := shy.Rect{}
 		mut mb_mouse_area := shy.Rect{}
 		mut ims_mouse_area := shy.Rect{}
+		mut dims_mouse_area := shy.Rect{}
 		if a.mode == .menu {
 			mut mb := a.start_button
 			was_started = mb.click_started
@@ -563,6 +590,20 @@ pub fn (mut a App) bind_button_handlers() ! {
 				}
 			}
 		}
+		if a.mode == .options {
+			mut dims := a.dim_selector
+			was_started = dims.click_started
+			dims.click_started = false
+			area = dims.Rect
+			dims_mouse_area = area.displaced_from(.center)
+			if was_started && dims_mouse_area.contains(mouse.x, mouse.y) {
+				// println(imse.clicks)
+				if dims.on_clicked != unsafe { nil } {
+					handled = dims.on_clicked()
+				}
+			}
+		}
+
 		if !(was_started && mb_mouse_area.contains(mouse.x, mouse.y)) {
 			mut mb := a.start_button
 			mb.is_hovered = false
@@ -582,6 +623,13 @@ pub fn (mut a App) bind_button_handlers() ! {
 			ims.is_hovered = false
 			if ims.on_leave != unsafe { nil } {
 				handled = ims.on_leave()
+			}
+		}
+		if !(was_started && dims_mouse_area.contains(mouse.x, mouse.y)) {
+			mut dims := a.dim_selector
+			dims.is_hovered = false
+			if dims.on_leave != unsafe { nil } {
+				handled = dims.on_leave()
 			}
 		}
 

@@ -3,17 +3,20 @@
 // that can be found in the LICENSE file.
 module main
 
-// import shy.mth
+import shy.utils
 import shy.lib as shy
+import shy.vec { Vec2 }
 
 [heap]
 struct DimensionSelector {
 	shy.Rect
 mut:
-	a             &App
-	label         string
-	dim           shy.Size
-	scale         f32 = 1.0
+	a     &App
+	label string
+	dim   shy.Size
+	// min Vec2[f32] = shy.vec2[f32](1,1)
+	max           Vec2[f32] = shy.vec2[f32](20, 20)
+	scale         f32       = 1.0
 	click_started bool
 	is_hovered    bool
 	on_clicked    fn () bool
@@ -32,13 +35,37 @@ fn (dims &DimensionSelector) de_origin_rect() shy.Rect {
 	}
 }
 
+fn (dims &DimensionSelector) to_cell(xy Vec2[f32]) ?Vec2[int] {
+	area_center := dims.Rect
+	// min := dims.min
+	max := dims.max
+	// box_width := area_center.width / max.x
+	// box_height := area_center.height / max.y
+	top_left := shy.vec2(area_center.x - shy.half * area_center.width, area_center.y - shy.half * area_center.height)
+	off := top_left //+ shy.vec2[f32](box_width*0.5,box_height*0.5)
+	if xy.x >= off.x && xy.x <= off.x + area_center.x && xy.y >= off.y
+		&& xy.y <= off.y + area_center.y {
+		cell := shy.vec2(utils.remap(xy.x, off.x, off.x + area_center.width, 0, max.x),
+			utils.remap(xy.y, off.y, off.y + area_center.height, 0, max.y))
+		return Vec2[int]{
+			x: int(cell.x) + 1
+			y: int(cell.y) + 1
+		}
+	}
+
+	return none
+}
+
 //[live]
-fn (dims DimensionSelector) draw() {
+fn (dims &DimensionSelector) draw() {
 	a := dims.a
+
+	// min := dims.min
+	max := dims.max
 
 	mut text := dims.label
 	area_center := dims.Rect
-	// top_left := shy.vec2(area_center.x - shy.half * area_center.width,area_center.y - shy.half * area_center.height)
+	top_left := shy.vec2(area_center.x - shy.half * area_center.width, area_center.y - shy.half * area_center.height)
 	canvas_size := a.canvas
 	draw_scale := a.window.draw_factor()
 	mut bgcolor := shy.rgba(0, 0, 0, 57)
@@ -49,13 +76,6 @@ fn (dims DimensionSelector) draw() {
 			bgcolor = shy.colors.shy.green
 		}*/
 	}
-
-	/*
-	dim := a.puzzle_dim
-	for row in dim.width {
-		for col in dim.height {
-		}
-	}*/
 
 	// mut border_color := shy.rgba(255,255,255,57)
 	a.quick.rect(
@@ -77,6 +97,46 @@ fn (dims DimensionSelector) draw() {
 	}
 	font_size_factor := 1 / design_factor * draw_scale * dims.scale
 
+	dim := dims.dim
+
+	box_width := area_center.width / max.x
+	box_height := area_center.height / max.y
+	for ix in 0 .. int(max.x) {
+		for iy in 0 .. int(max.y) {
+			off := top_left + shy.vec2[f32](box_width * 0.5, box_height * 0.5)
+			rect := shy.Rect{
+				x: off.x + (ix * box_width)
+				y: off.y + (iy * box_height)
+				width: box_width - 1
+				height: box_height - 1
+			}
+			mut color := shy.rgba(0, 0, 0, 27)
+			// iix := ix+1
+			// iiy := iy+1
+			if ix <= max.x {
+				if iy <= max.y {
+					if ix < dim.width && iy < dim.height {
+						color = shy.rgba(255, 255, 255, 200)
+					}
+				}
+			}
+			a.quick.rect(
+				Rect: rect
+				origin: .center
+				color: color
+				// color: shy.rgba(127,127,127,127) //bgcolor
+				fills: .body
+				/*
+				stroke: shy.Stroke{
+					width: 1
+					color: color
+				}*/
+				scale: dims.scale
+			)
+		}
+	}
+
+	/*
 	a.quick.text(
 		x: area_center.x
 		y: area_center.y
@@ -84,7 +144,7 @@ fn (dims DimensionSelector) draw() {
 		origin: .center
 		size: 20 * font_size_factor
 		text: 'No images found'
-	)
+	)*/
 
 	a.quick.rect(
 		x: area_center.x - shy.half * area_center.width
@@ -115,70 +175,4 @@ fn (dims DimensionSelector) draw() {
 		size: 50 * font_size_factor
 		text: text
 	)
-
-	if dims.is_hovered {
-		button_wh := int(0.05 * area_center.width)
-		// base_color := colors.blue
-		// Left navigation button
-		l_rect := shy.Rect{
-			x: (shy.half * button_wh) + area_center.x - shy.half * area_center.width
-			y: area_center.y
-			width: button_wh
-			height: button_wh
-		}
-		/*
-		Visual guide
-		a.quick.rect(
-			Rect: l_rect
-			origin: .center
-			color: base_color
-			// fills: .body
-// 			stroke: shy.Stroke{
-// 				width: 3
-// 				color: border_color
-// 			}
-			scale: dims.scale
-		)*/
-		a.quick.triangle(
-			a: shy.vec2(l_rect.x, l_rect.y + shy.half * l_rect.height)
-			b: shy.vec2(l_rect.x + l_rect.width, l_rect.y)
-			c: shy.vec2(l_rect.x + l_rect.width, l_rect.y + l_rect.height)
-			// rotation: 90
-			fills: .body
-			color: shy.colors.shy.white
-			origin: .center
-			scale: 0.7
-		)
-
-		// Right navigation button
-		r_rect := shy.Rect{
-			x: area_center.x + shy.half * area_center.width - (shy.half * button_wh)
-			y: area_center.y
-			width: button_wh
-			height: button_wh
-		}
-		/*
-		Visual guide
-		a.quick.rect(
-			Rect: r_rect
-			origin: .center
-			color: base_color
-			// fills: .body
-// 			stroke: shy.Stroke{
-// 				width: 3
-// 				color: border_color
-// 			}
-			scale: dims.scale
-		)*/
-		a.quick.triangle(
-			a: shy.vec2(r_rect.x, r_rect.y)
-			b: shy.vec2(r_rect.x + r_rect.width, r_rect.y + shy.half * r_rect.height)
-			c: shy.vec2(r_rect.x, r_rect.y + r_rect.height)
-			// rotation: rotation
-			fills: .body
-			color: shy.colors.shy.white
-			origin: .center
-			scale: 0.7
-		)
-	}
 }

@@ -67,6 +67,10 @@ pub fn (mut a App) on_menu_event_update(e UIEvent) {
 					a.start_game() or { panic(err) }
 					a.mode = .game
 				}
+				.o {
+					a.dim_selector.dim = a.puzzle_dim
+					a.mode = .options
+				}
 				.left {
 					a.select_prev_image()
 				}

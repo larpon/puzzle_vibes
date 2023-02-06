@@ -213,7 +213,7 @@ fn (mut ob OptionsButton) variable_update(dt f64) {
 	area := shy.Rect{
 		x: 10 + (0.04 * canvas_size.width) + ((0.04 * canvas_size.width) * 0.5)
 		y: 10 + ((0.08 * canvas_size.height) * 0.5)
-		width: 0.06 * canvas_size.width
+		width: 0.11 * canvas_size.width
 		height: 0.08 * canvas_size.height
 	}
 	// println('Area: ${area}')
