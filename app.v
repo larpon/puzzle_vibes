@@ -6,8 +6,6 @@ module main
 import os
 import rand
 import shy.lib as shy
-// import shy.vec
-// import shy.matrix
 import shy.embed
 import shy.particle
 import shy.easy
@@ -21,7 +19,7 @@ enum Mode {
 pub struct App {
 	embed.ExampleApp
 mut:
-	mode           Mode //= .game
+	mode           Mode //= .game // nice if you're debugging game play
 	puzzle         &Puzzle        = shy.null
 	image_selector &ImageSelector = shy.null
 	start_button   &MenuButton    = shy.null
@@ -29,8 +27,22 @@ mut:
 	is_starting    bool
 	ps             &easy.ParticleSystem = shy.null
 	//
-	sfx   map[string]SFXInfo
-	music map[string]Music
+	sfx            map[string]SFXInfo
+	music          map[string]Music
+	hovered_pieces []Piece // To avoid re-allocating a new array every event
+}
+
+fn (a App) play_sfx(entry string) {
+	a.quick.play(
+		source: a.asset('sfx/' + a.sfx[entry].file)
+	)
+}
+
+fn (a App) play_sfx_with_pitch(entry string, pitch f32) {
+	a.quick.play(
+		source: a.asset('sfx/' + a.sfx[entry].file)
+		pitch: pitch
+	)
 }
 
 fn (a App) play_sfx_with_random_pitch(entry string) {
@@ -40,9 +52,10 @@ fn (a App) play_sfx_with_random_pitch(entry string) {
 	)
 }
 
-fn (a App) play_sfx(entry string) {
+fn (a App) play_sfx_with_random_pitch_in_range(entry string, from f32, to f32) {
 	a.quick.play(
 		source: a.asset('sfx/' + a.sfx[entry].file)
+		pitch: rand.f32_in_range(from, to) or { 0.0 }
 	)
 }
 
@@ -551,51 +564,6 @@ pub fn (mut a App) frame(dt f64) {
 	a.back_button.draw()
 }
 
-//[live]
-pub fn (mut a App) render_menu_frame(dt f64) {
-	canvas_size := a.canvas
-	// println(canvas_size)
-
-	// Background
-	a.quick.image(
-		// x: 0
-		// y: 0
-		source: a.asset('images/seamless_wooden_texture.jpg')
-		width: a.canvas.width
-		height: a.canvas.height
-		fill_mode: .tile
-	)
-
-	/*
-	a.quick.rect(
-		x: shy.half * canvas_size.width
-		y: shy.half * canvas_size.height
-		width: canvas_size.width
-		height: canvas_size.height
-		origin: .center
-		color: bgcolor
-		stroke: shy.Stroke{
-			width: 1
-		}
-	)*/
-
-	a.ps.draw()
-
-	// Logo
-	a.quick.image(
-		x: shy.half * canvas_size.width
-		y: shy.half * canvas_size.height
-		source: a.asset('images/puzzle_vibes_logo.png')
-		origin: .center
-		offset: shy.vec2[f32](0, -(canvas_size.height * 0.32))
-		scale: (a.canvas.width / 1920) * 0.45
-	)
-
-	a.image_selector.draw()
-
-	a.start_button.draw()
-}
-
 pub fn (mut a App) render_game_frame(dt f64) {
 	mut design_factor := f32(1440) / a.canvas.width
 	if design_factor == 0 {
@@ -634,7 +602,6 @@ pub fn (mut a App) render_game_frame(dt f64) {
 	)
 
 	a.puzzle.draw()
-
 
 	mut grabbed_piece := &Piece(0)
 	for piece in a.puzzle.pieces {
@@ -809,44 +776,6 @@ type GameEvent = shy.KeyEvent | shy.MouseButtonEvent | shy.MouseMotionEvent
 
 type UIEvent = shy.KeyEvent | shy.MouseButtonEvent | shy.MouseMotionEvent
 
-// [live]
-pub fn (mut a App) on_menu_event_update(e UIEvent) {
-	if a.mode != .menu {
-		return
-	}
-	match e {
-		shy.KeyEvent {
-			if e.state == .up {
-				return
-			}
-			key := e.key_code
-			match key {
-				.s {
-					a.start_game() or { panic(err) }
-					a.mode = .game
-				}
-				.left {
-					a.select_prev_image()
-				}
-				.right {
-					a.select_next_image()
-				}
-				/*
-				.up {
-					a.image_selector.todo_rm = a.image_selector.todo_rm.next()
-					dump(a.image_selector.todo_rm)
-				}
-				.down {
-					a.image_selector.todo_rm = a.image_selector.todo_rm.prev()
-					dump(a.image_selector.todo_rm)
-				}*/
-				else {}
-			}
-		}
-		else {}
-	}
-}
-
 pub fn (mut a App) on_game_event_update(e GameEvent) {
 	if a.mode != .game {
 		return
@@ -883,29 +812,46 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 
 	m := shy.vec2[f32](a.mouse.x, a.mouse.y)
 	mut solved := true
-	for mut piece in a.puzzle.pieces {
+
+	// mut hovered_pieces := []Piece{}
+	// a.puzzle.sort_pieces_if_needed()
+	// mut pieces := a.puzzle.pieces
+
+	for piece_ in a.puzzle.pieces {
+		mut piece := unsafe { piece_ }
 		piece.hovered = false
 		// No need to check this in movement events
 		if is_button_event && !a.mouse.is_button_down(.left) {
+			// Handle drop
 			if piece.id == a.puzzle.grabbed {
 				piece.grabbed = false
 				a.puzzle.grabbed = 0
+				a.play_sfx_with_random_pitch('Lay')
 				if p := a.puzzle.get_solved_piece(m) {
-					if p.id == piece.id {
-						// NOTE The following is important for being able to detect if the puzzle is solved
-						// since we use an epsilon equality check to detect if the pieces are near their solved
-						// position (start position, before the initial scramble).
-						// The float math involved for getting points in and out of the viewports is admittedly very crue and homemade
-						// so things can end up several pixels apart from their starting location, hence this litte "trick" to
-						// get the values back where they came from. If it works, eh?!
-						piece.pos = p.pos_solved
+					if a.puzzle.has_piece_at(m) {
+						a.play_sfx_with_random_pitch_in_range('Disagree', 0.8, 1.2)
+						// println('Piece already in this quadrant')
+						piece.pos = piece.last_pos
 					} else {
-						svpr := p.solved_viewport_rect_raw()
-						pos := shy.vec2(svpr.x, svpr.y)
-						piece.pos = piece.viewport_to_local(pos) // - piece.pos
+						if p.id == piece.id {
+							// NOTE The following is important for being able to detect if the puzzle is solved
+							// since we use an epsilon equality check to detect if the pieces are near their solved
+							// position (start position, before the initial scramble).
+							// The float math involved for getting points in and out of the viewports is admittedly very crue and homemade
+							// so things can end up several pixels apart from their starting location, hence this litte "trick" to
+							// get the values back where they came from. If it works, eh?!
+							piece.pos = p.pos_solved
+						} else {
+							svpr := p.solved_viewport_rect_raw()
+							pos := shy.vec2(svpr.x, svpr.y)
+							piece.pos = piece.viewport_to_local(pos)
+						}
+						// piece.laid = true
+						// piece.z = 0
+						// a.puzzle.needs_sorting = true
 					}
-					piece.laid = true
 				}
+				piece.laid = true
 			}
 		}
 
@@ -917,20 +863,37 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 
 		if mouse_area.contains(a.mouse.x, a.mouse.y) {
 			piece.hovered = true
-			if is_button_event && a.mouse.is_button_down(.left) {
-				if a.puzzle.grabbed == 0 {
-					piece.grabbed = true
-					a.puzzle.grabbed = piece.id
-					piece.pos = piece.viewport_to_local(m)
-					piece.laid = false
-				}
-			}
+			a.hovered_pieces << piece
 		}
 		if !piece.is_solved() {
 			// println('${piece.xy.x},${piece.xy.y} is not solved: ${piece.pos} vs ${piece.pos_solved}')
 			solved = false
 		}
 	}
+
+	if a.hovered_pieces.len > 0 {
+		// Makes sure we grab the top-most piece
+		a.hovered_pieces.sort(a.id > b.id)
+		if is_button_event && a.mouse.is_button_down(.left) {
+			if a.puzzle.grabbed == 0 {
+				hovered_piece := a.hovered_pieces[0]
+				for mut piece in a.puzzle.pieces {
+					if piece.id == hovered_piece.id {
+						piece.grabbed = true
+						a.puzzle.grabbed = piece.id
+						piece.last_pos = piece.pos
+						piece.pos = piece.viewport_to_local(m)
+						piece.laid = false
+						a.play_sfx_with_random_pitch('Take')
+						// piece.z = a.puzzle.pieces.len+1
+						// a.puzzle.needs_sorting = true
+					}
+				}
+			}
+		}
+	}
+	a.hovered_pieces.clear()
+
 	if solved {
 		// println('SOLVED!')
 		a.play_sfx('Cheering crowd')

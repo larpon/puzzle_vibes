@@ -15,16 +15,17 @@ struct Puzzle {
 	shy.Rect // Holds the board top-left *scaled* x,y pos *inside* the viewport, width and height are the original image w/h before scaling
 	app &App // TODO abstract drawing out into user-land?
 mut:
-	viewport   shy.Rect // Area defining the rendered output
-	image      shy.Image
-	dim        shy.Size // width: amount of horizontal pieces, height: amount of vertical pieces
-	piece_size shy.Size // smallest, "most used" piece_size
-	pieces     []&Piece
-	pieces_map map[string]&Piece // yuk
-	grabbed    u32 // id of the piece currently grabbed
-	scale      f32
-	margin     f32 = 0.75 // 0.1 - 0.9; percentage of minimum available screen space to fill
-	solved     bool
+	viewport      shy.Rect // Area defining the rendered output
+	image         shy.Image
+	dim           shy.Size // width: amount of horizontal pieces, height: amount of vertical pieces
+	piece_size    shy.Size // smallest, "most used" piece_size
+	pieces        []&Piece
+	pieces_map    map[string]&Piece // yuk
+	grabbed       u32 // id of the piece currently grabbed
+	scale         f32
+	margin        f32 = 0.75 // 0.1 - 0.9; percentage of minimum available screen space to fill
+	solved        bool
+	needs_sorting bool // indicates if > 1 piece has changed it's z value, and thus we need to sort the pieces
 }
 
 [params]
@@ -32,7 +33,7 @@ struct PuzzleConfig {
 	app        &App     // TODO abstract drawing out into user-land?
 	viewport   shy.Rect // Area defining the rendered output
 	image      shy.Image
-	dimensions shy.Size = shy.size(3,3) // width: amount of horizontal pieces, height: amount of vertical pieces
+	dimensions shy.Size = shy.size(3, 3) // width: amount of horizontal pieces, height: amount of vertical pieces
 }
 
 [heap]
@@ -42,8 +43,9 @@ struct Piece {
 mut:
 	id         u32       // flat index row major
 	xy         Vec2[u32] // x,y piece id top-left = 0,0 bottom-right = puzzle.dim.w-1/h-1
-	z          f32
-	pos        Vec2[f32] // x,y in *viewport*
+	z          int
+	pos        Vec2[f32] // x,y in local coordinates
+	last_pos   Vec2[f32] // x,y in local coordinates
 	size       shy.Size  // size before scaling
 	pos_solved Vec2[f32] // x,y in viewport when solved/untouched
 	hovered    bool
@@ -135,7 +137,16 @@ pub fn (mut p Puzzle) reset() {
 	for mut piece in p.pieces {
 		piece.reset()
 	}
+	p.needs_sorting = true
 	p.solved = true
+	p.sort_pieces_if_needed()
+}
+
+pub fn (mut p Puzzle) sort_pieces_if_needed() {
+	if p.needs_sorting {
+		p.pieces.sort(a.z < b.z)
+	}
+	p.needs_sorting = false
 }
 
 pub fn (p Puzzle) get_piece(id u32) ?&Piece {
@@ -201,10 +212,14 @@ pub fn (mut p Puzzle) scramble(opt ScrambleOptions) ! {
 		r_y := rand.f32_in_range(y_range_min, y_range_max) or { return error('${@FN}: ${err}') }
 
 		piece.pos = piece.viewport_to_local(shy.vec2(r_x, r_y))
+		piece.last_pos = piece.pos
 		piece.laid = false
+		// piece.z = rand.int_in_range(0,p.pieces.len) or { 0 }
+		// p.needs_sorting = true
 		// If *any* of the pieces gets scrambled, the puzzle is unsolved.
 		p.solved = false
 	}
+	// p.sort_pieces_if_needed()
 }
 
 pub fn (p &Piece) is_solved() bool {
@@ -245,10 +260,28 @@ pub fn (p &Puzzle) get_quadrant(viewport_pos Vec2[f32]) ?shy.Rect {
 	return none
 }
 
+pub fn (p &Puzzle) has_piece_at(viewport_pos Vec2[f32]) bool {
+	vp := viewport_pos
+	if rect := p.get_quadrant(vp) {
+		for piece in p.pieces {
+			if piece.laid {
+				pos := piece.local_to_viewport(piece.pos) + piece.viewport_offset()
+				if rect.contains(pos.x, pos.y) {
+					return true
+				}
+			}
+		}
+	}
+	return false
+}
+
 pub fn (mut p Puzzle) auto_solve() {
 	for mut piece in p.pieces {
 		piece.pos = piece.pos_solved
+		piece.last_pos = piece.pos
 		piece.laid = true
+		// piece.z = 0
+		// p.needs_sorting = true
 	}
 	p.solved = true
 }
@@ -334,11 +367,13 @@ pub fn (p &Piece) solved_viewport_rect_raw() shy.Rect {
 	return area
 }
 
-pub fn (mut p Piece) reset() {
+fn (mut p Piece) reset() {
 	p.pos = p.pos_solved
+	p.last_pos = p.pos_solved
 	p.hovered = false
 	p.grabbed = false
 	p.laid = true
+	// p.z = 0
 }
 
 // The region of the puzzle image this piece represents/depicts
@@ -399,7 +434,7 @@ pub fn (p &Piece) local_to_viewport(pos Vec2[f32]) Vec2[f32] {
 	return new_pos
 }
 
-pub fn (mut p Piece) viewport_to_local(viewport_pos Vec2[f32]) Vec2[f32] {
+pub fn (p &Piece) viewport_to_local(viewport_pos Vec2[f32]) Vec2[f32] {
 	mut p_pos := p.puzzle.viewport_to_local(viewport_pos)
 	p_pos -= shy.vec2[f32](p.size.width * 0.5, p.size.height * 0.5)
 	p_pos -= p.pos_solved
