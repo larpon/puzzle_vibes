@@ -85,7 +85,7 @@ pub fn (mut a App) init() ! {
 	})
 
 	a.ps.replace_default_painter(a.easy.image_particle_painter(
-		color: shy.rgba(255, 255, 255, 127)
+		color: shy.rgba(255, 255, 255, 100)
 	))
 
 	a.quick.load(shy.ImageOptions{
@@ -170,26 +170,12 @@ pub fn (mut a App) init() ! {
 		})!
 	}
 
-	dim := shy.Size{
-		width: 3
-		height: 3
-	}
-
-	/*
-	mut sound_asset := a.easy.load(
-		source: a.asset('sfx/take.wav')
-	)!
-	a.sound = sound_asset.to[shy.Sound](shy.SoundOptions{
-		max_repeats: 4
-	})!*/
-
 	viewport := a.canvas.to_rect()
 
 	a.puzzle = new_puzzle(
 		app: a
 		viewport: viewport
 		image: img
-		dimensions: dim
 	)!
 
 	a.bind_button_handlers()!
@@ -211,6 +197,7 @@ pub fn (mut a App) init() ! {
 		on_pressed: fn [mut a] () bool {
 			mut button := a.start_button
 			button.scale = 0.98
+			a.play_sfx('Squish')
 			return false
 		}
 		on_leave: fn [mut a] () bool {
@@ -243,6 +230,7 @@ pub fn (mut a App) init() ! {
 			return true
 		}
 		on_pressed: fn [mut a] () bool {
+			a.play_sfx('Squish')
 			mut button := a.back_button
 			button.scale = 0.98
 			return false
@@ -646,6 +634,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 	)
 
 	a.puzzle.draw()
+
 
 	mut grabbed_piece := &Piece(0)
 	for piece in a.puzzle.pieces {

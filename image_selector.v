@@ -113,7 +113,7 @@ fn (ims ImageSelector) draw() {
 			source: image.source
 			origin: .center
 			scale: 0.95
-			fill_mode: .aspect_fit
+			fill_mode: .aspect_crop //.aspect_fit
 		)
 	} else {
 		a.quick.text(

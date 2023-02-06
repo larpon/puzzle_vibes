@@ -32,7 +32,7 @@ struct PuzzleConfig {
 	app        &App     // TODO abstract drawing out into user-land?
 	viewport   shy.Rect // Area defining the rendered output
 	image      shy.Image
-	dimensions shy.Size // width: amount of horizontal pieces, height: amount of vertical pieces
+	dimensions shy.Size = shy.size(3,3) // width: amount of horizontal pieces, height: amount of vertical pieces
 }
 
 [heap]
@@ -42,6 +42,7 @@ struct Piece {
 mut:
 	id         u32       // flat index row major
 	xy         Vec2[u32] // x,y piece id top-left = 0,0 bottom-right = puzzle.dim.w-1/h-1
+	z          f32
 	pos        Vec2[f32] // x,y in *viewport*
 	size       shy.Size  // size before scaling
 	pos_solved Vec2[f32] // x,y in viewport when solved/untouched
