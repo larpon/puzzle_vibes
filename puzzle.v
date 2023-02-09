@@ -467,6 +467,24 @@ pub fn (p &Piece) draw() {
 		)
 	}
 
+	/*
+	else {
+		// Draw shadow under grabbed piece
+		grab_scale = 1.05
+		scale *= grab_scale
+
+		shadow_color := shy.rgba(0, 0, 0, 70)
+
+		shadow_offset := utils.remap(f32(0.025), 0, 1, 0, pz.image.width) * scale
+
+		a.quick.rect(
+			Rect: p.viewport_rect()
+			offset: shy.vec2[f32](shadow_offset, shadow_offset)
+			color: shadow_color
+			fills: .body
+		)
+	}*/
+
 	// println('${pos_x} vs ${mth.round_to_even(pos_x)}')
 	// if p.xy.x == 0 && p.xy.y == 0 {
 	// println('Pos: ${pos_x}x${pos_y}\nRegion: ${region}\nOffset: ${offset}\n')

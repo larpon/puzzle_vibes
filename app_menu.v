@@ -63,7 +63,7 @@ pub fn (mut a App) on_menu_event_update(e UIEvent) {
 			}
 			key := e.key_code
 			match key {
-				.s {
+				.space, .@return, .kp_enter {
 					a.start_game() or { panic(err) }
 					a.mode = .game
 				}

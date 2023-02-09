@@ -13,7 +13,7 @@ struct DimensionSelector {
 mut:
 	a     &App
 	label string
-	dim   shy.Size
+	dim   shy.Size = shy.size(3, 3)
 	// min Vec2[f32] = shy.vec2[f32](1,1)
 	max           Vec2[f32] = shy.vec2[f32](20, 20)
 	scale         f32       = 1.0

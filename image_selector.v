@@ -135,6 +135,11 @@ fn (ims ImageSelector) draw() {
 		fills: .body
 	)
 
+	text_as_runes := text.runes()
+	if text_as_runes.len > 28 {
+		text = text_as_runes[..25].string() + '...'
+	}
+
 	a.quick.text(
 		x: area_center.x
 		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.1

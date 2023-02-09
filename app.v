@@ -52,7 +52,7 @@ fn (a App) play_sfx_with_pitch(entry string, pitch f32) {
 fn (a App) play_sfx_with_random_pitch(entry string) {
 	a.quick.play(
 		source: a.asset('sfx/' + a.sfx[entry].file)
-		pitch: rand.f32_in_range(1, 3) or { 0.0 }
+		pitch: rand.f32_in_range(0.8, 1.2) or { 0.0 }
 	)
 }
 
@@ -334,6 +334,7 @@ pub fn (mut a App) init() ! {
 
 	a.dim_selector = &DimensionSelector{
 		a: a
+		dim: shy.size(3, 3)
 		label: '${a.puzzle_dim.width:.0f}x${a.puzzle_dim.height:.0f} Puzzle, ${int(a.puzzle_dim.area())} pieces'
 		/*
 		on_clicked: fn [mut a] () bool {
@@ -852,7 +853,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 // asset unifies locating project assets.
 pub fn (a App) asset(relative_path string) string {
 	path := relative_path // relative_path.replace('\\','/')
-	$if wasm32_emscripten {
+	$if wasm32_emscripten || android {
 		return path
 	}
 	return os.resource_abs_path(os.join_path('assets', path))
@@ -860,7 +861,6 @@ pub fn (a App) asset(relative_path string) string {
 
 pub fn (mut a App) start_game() ! {
 	a.puzzle_dim = a.dim_selector.dim
-
 	imse := a.image_selector.get_selected_image() or {
 		return error('Failed getting selected image')
 	}
@@ -914,6 +914,21 @@ pub fn (mut a App) event(e shy.Event) {
 	a.ExampleApp.event(e)
 
 	match e {
+		shy.DropFileEvent {
+			if a.mode in [.menu, .options] {
+				image := e.path
+				if os.is_file(image) {
+					entry := ImageSelectorEntry{
+						name: os.file_name(image).all_before_last('.')
+						source: image
+					}
+					a.quick.load(shy.ImageOptions{
+						source: image
+					}) or { panic(err) } // TODO
+					a.image_selector.images << entry
+				}
+			}
+		}
 		shy.KeyEvent {
 			a.on_menu_event_update(e)
 			a.on_options_event_update(e)
