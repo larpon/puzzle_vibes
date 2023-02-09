@@ -1002,10 +1002,6 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 	m := shy.vec2[f32](a.mouse.x, a.mouse.y)
 	mut solved := true
 
-	// mut hovered_pieces := []Piece{}
-	// a.puzzle.sort_pieces_if_needed()
-	// mut pieces := a.puzzle.pieces
-
 	for piece_ in a.puzzle.pieces {
 		mut piece := unsafe { piece_ }
 		piece.hovered = false
@@ -1036,8 +1032,6 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 							piece.pos = piece.viewport_to_local(pos)
 						}
 						piece.laid = true
-						// piece.z = 0
-						// a.puzzle.needs_sorting = true
 					}
 				}
 			}
@@ -1060,7 +1054,8 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 	}
 
 	if a.hovered_pieces.len > 0 {
-		// Makes sure we grab the top-most piece
+		// Makes sure we grab the top-most piece by
+		// sorting the ones hovered and just grab the first
 		a.hovered_pieces.sort(a.id > b.id)
 		if is_button_event && a.mouse.is_button_down(.left) {
 			if a.puzzle.grabbed == 0 {
@@ -1068,13 +1063,11 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 				for mut piece in a.puzzle.pieces {
 					if piece.id == hovered_piece.id {
 						piece.grabbed = true
+						piece.laid = false
 						a.puzzle.grabbed = piece.id
 						piece.last_pos = piece.pos
 						piece.pos = piece.viewport_to_local(m)
-						piece.laid = false
 						a.play_sfx_with_random_pitch('Take')
-						// piece.z = a.puzzle.pieces.len+1
-						// a.puzzle.needs_sorting = true
 					}
 				}
 			}

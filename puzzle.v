@@ -15,17 +15,16 @@ struct Puzzle {
 	shy.Rect // Holds the board top-left *scaled* x,y pos *inside* the viewport, width and height are the original image w/h before scaling
 	app &App // TODO abstract drawing out into user-land?
 mut:
-	viewport      shy.Rect // Area defining the rendered output
-	image         shy.Image
-	dim           shy.Size // width: amount of horizontal pieces, height: amount of vertical pieces
-	piece_size    shy.Size // smallest, "most used" piece_size
-	pieces        []&Piece
-	pieces_map    map[string]&Piece // yuk
-	grabbed       u32 // id of the piece currently grabbed
-	scale         f32
-	margin        f32 = 0.75 // 0.1 - 0.9; percentage of minimum available screen space to fill
-	solved        bool
-	needs_sorting bool // indicates if > 1 piece has changed it's z value, and thus we need to sort the pieces
+	viewport   shy.Rect // Area defining the rendered output
+	image      shy.Image
+	dim        shy.Size // width: amount of horizontal pieces, height: amount of vertical pieces
+	piece_size shy.Size // smallest, "most used" piece_size
+	pieces     []&Piece
+	pieces_map map[string]&Piece // yuk
+	grabbed    u32 // id of the piece currently grabbed
+	scale      f32
+	margin     f32 = 0.75 // 0.1 - 0.9; percentage of minimum available screen space to fill
+	solved     bool
 }
 
 [params]
@@ -43,7 +42,6 @@ struct Piece {
 mut:
 	id         u32       // flat index row major
 	xy         Vec2[u32] // x,y piece id top-left = 0,0 bottom-right = puzzle.dim.w-1/h-1
-	z          int
 	pos        Vec2[f32] // x,y in local coordinates
 	last_pos   Vec2[f32] // x,y in local coordinates
 	size       shy.Size  // size before scaling
@@ -137,16 +135,7 @@ pub fn (mut p Puzzle) reset() {
 	for mut piece in p.pieces {
 		piece.reset()
 	}
-	p.needs_sorting = true
 	p.solved = true
-	p.sort_pieces_if_needed()
-}
-
-pub fn (mut p Puzzle) sort_pieces_if_needed() {
-	if p.needs_sorting {
-		p.pieces.sort(a.z < b.z)
-	}
-	p.needs_sorting = false
 }
 
 pub fn (p Puzzle) get_piece(id u32) ?&Piece {
@@ -213,13 +202,11 @@ pub fn (mut p Puzzle) scramble(opt ScrambleOptions) ! {
 
 		piece.pos = piece.viewport_to_local(shy.vec2(r_x, r_y))
 		piece.last_pos = piece.pos
-		// piece.laid = false
-		// piece.z = rand.int_in_range(0,p.pieces.len) or { 0 }
-		// p.needs_sorting = true
+		// piece.laid = false // no need to touch it
+
 		// If *any* of the pieces gets scrambled, the puzzle is unsolved.
 		p.solved = false
 	}
-	// p.sort_pieces_if_needed()
 }
 
 pub fn (p &Piece) is_solved() bool {
@@ -280,8 +267,6 @@ pub fn (mut p Puzzle) auto_solve() {
 		piece.pos = piece.pos_solved
 		piece.last_pos = piece.pos
 		piece.laid = true
-		// piece.z = 0
-		// p.needs_sorting = true
 	}
 	p.solved = true
 }
@@ -374,7 +359,6 @@ fn (mut p Piece) reset() {
 	p.hovered = false
 	p.grabbed = false
 	p.laid = true
-	// p.z = 0
 }
 
 // The region of the puzzle image this piece represents/depicts
