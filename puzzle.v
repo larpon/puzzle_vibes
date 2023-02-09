@@ -50,7 +50,7 @@ mut:
 	pos_solved Vec2[f32] // x,y in viewport when solved/untouched
 	hovered    bool
 	grabbed    bool
-	laid       bool = true
+	laid       bool // Indicates if the piece is laid in the puzzle area. aka NOT outside the board/puzzle solved area.
 }
 
 pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
@@ -213,7 +213,7 @@ pub fn (mut p Puzzle) scramble(opt ScrambleOptions) ! {
 
 		piece.pos = piece.viewport_to_local(shy.vec2(r_x, r_y))
 		piece.last_pos = piece.pos
-		piece.laid = false
+		// piece.laid = false
 		// piece.z = rand.int_in_range(0,p.pieces.len) or { 0 }
 		// p.needs_sorting = true
 		// If *any* of the pieces gets scrambled, the puzzle is unsolved.
@@ -367,6 +367,7 @@ pub fn (p &Piece) solved_viewport_rect_raw() shy.Rect {
 	return area
 }
 
+// reset teh piece to it's solved state
 fn (mut p Piece) reset() {
 	p.pos = p.pos_solved
 	p.last_pos = p.pos_solved
@@ -465,25 +466,22 @@ pub fn (p &Piece) draw() {
 			color: shadow_color
 			fills: .body
 		)
-	}
-
-	/*
-	else {
-		// Draw shadow under grabbed piece
-		grab_scale = 1.05
-		scale *= grab_scale
-
+	} else if !p.grabbed && !p.laid {
+		// Draw shadow around the piece
 		shadow_color := shy.rgba(0, 0, 0, 70)
-
-		shadow_offset := utils.remap(f32(0.025), 0, 1, 0, pz.image.width) * scale
-
+		shadow_offset := f32(0)
 		a.quick.rect(
-			Rect: p.viewport_rect()
+			Rect: p.viewport_rect_raw()
 			offset: shy.vec2[f32](shadow_offset, shadow_offset)
-			color: shadow_color
-			fills: .body
+			fills: .stroke
+			origin: .center
+			scale: grab_scale
+			stroke: shy.Stroke{
+				color: shadow_color
+				width: 3
+			}
 		)
-	}*/
+	}
 
 	// println('${pos_x} vs ${mth.round_to_even(pos_x)}')
 	// if p.xy.x == 0 && p.xy.y == 0 {

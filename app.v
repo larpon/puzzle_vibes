@@ -1035,12 +1035,11 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 							pos := shy.vec2(svpr.x, svpr.y)
 							piece.pos = piece.viewport_to_local(pos)
 						}
-						// piece.laid = true
+						piece.laid = true
 						// piece.z = 0
 						// a.puzzle.needs_sorting = true
 					}
 				}
-				piece.laid = true
 			}
 		}
 
