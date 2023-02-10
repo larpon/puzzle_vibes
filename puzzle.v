@@ -15,16 +15,17 @@ struct Puzzle {
 	shy.Rect // Holds the board top-left *scaled* x,y pos *inside* the viewport, width and height are the original image w/h before scaling
 	app &App // TODO abstract drawing out into user-land?
 mut:
-	viewport   shy.Rect // Area defining the rendered output
-	image      shy.Image
-	dim        shy.Size // width: amount of horizontal pieces, height: amount of vertical pieces
-	piece_size shy.Size // smallest, "most used" piece_size
-	pieces     []&Piece
-	pieces_map map[string]&Piece // yuk
-	grabbed    u32 // id of the piece currently grabbed
-	scale      f32
-	margin     f32 = 0.75 // 0.1 - 0.9; percentage of minimum available screen space to fill
-	solved     bool
+	viewport      shy.Rect // Area defining the rendered output
+	image         shy.Image
+	dim           shy.Size // width: amount of horizontal pieces, height: amount of vertical pieces
+	piece_size    shy.Size // smallest, "most used" piece_size
+	pieces        []&Piece
+	pieces_map    map[string]&Piece // yuk
+	grabbed       u32 // id of the piece currently grabbed
+	scale         f32
+	margin        f32 = 0.75 // 0.1 - 0.9; percentage of minimum available screen space to fill
+	solved        bool
+	on_piece_init fn (mut piece Piece)
 }
 
 [params]
@@ -40,15 +41,17 @@ struct Piece {
 	app    &App
 	puzzle &Puzzle
 mut:
-	id         u32       // flat index row major
-	xy         Vec2[u32] // x,y piece id top-left = 0,0 bottom-right = puzzle.dim.w-1/h-1
-	pos        Vec2[f32] // x,y in local coordinates
-	last_pos   Vec2[f32] // x,y in local coordinates
-	size       shy.Size  // size before scaling
-	pos_solved Vec2[f32] // x,y in viewport when solved/untouched
-	hovered    bool
-	grabbed    bool
-	laid       bool // Indicates if the piece is laid in the puzzle area. aka NOT outside the board/puzzle solved area.
+	id          u32       // flat index row major
+	xy          Vec2[u32] // x,y piece id top-left = 0,0 bottom-right = puzzle.dim.w-1/h-1
+	pos         Vec2[f32] // x,y in local coordinates
+	last_pos    Vec2[f32] // x,y in local coordinates
+	size        shy.Size  // size before scaling
+	pos_solved  Vec2[f32] // x,y in viewport when solved/untouched
+	hovered     bool
+	grabbed     bool
+	laid        bool // Indicates if the piece is laid in the puzzle area. aka NOT outside the board/puzzle solved area.
+	rotation    f32 = 15 // only used as visual gimmick
+	rotation_am &shy.Animator[f32] = shy.null
 }
 
 pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
@@ -90,6 +93,20 @@ pub fn (mut p Puzzle) init(pc PuzzleConfig) ! {
 
 	assert !isnil(p.app)
 
+	/*
+	rotation_animator_config := shy.AnimatorConfig{
+		ease: ease.Ease{
+			kind: .sine
+			mode: .in_out
+			// custom_fn: custom_ease
+		}
+		recycle: true
+		loops: shy.infinite
+		loop: .pingpong
+	}*/
+
+	// a.a_x = a.shy.new_animator[f32](a_config)
+
 	p.pieces.clear()
 	p.pieces_map.clear()
 	mut pid := u32(1)
@@ -106,7 +123,7 @@ pub fn (mut p Puzzle) init(pc PuzzleConfig) ! {
 
 			pos_solved := shy.vec2[f32](x * (piece_size.width * 0.5), y * (piece_size.height * 0.5))
 			pos := pos_solved
-			piece := &Piece{
+			mut piece := &Piece{
 				app: a
 				puzzle: p
 				id: pid
@@ -114,6 +131,9 @@ pub fn (mut p Puzzle) init(pc PuzzleConfig) ! {
 				pos: pos
 				pos_solved: pos_solved
 				size: size
+			}
+			if !isnil(p.on_piece_init) {
+				p.on_piece_init(mut piece)
 			}
 			assert !isnil(piece.puzzle)
 			assert !isnil(piece.app)
@@ -135,6 +155,7 @@ pub fn (mut p Puzzle) reset() {
 	for mut piece in p.pieces {
 		piece.reset()
 	}
+	p.grabbed = 0
 	p.solved = true
 }
 
@@ -445,10 +466,12 @@ pub fn (p &Piece) draw() {
 		shadow_offset := utils.remap(f32(0.025), 0, 1, 0, pz.image.width) * scale
 
 		a.quick.rect(
-			Rect: p.viewport_rect()
+			Rect: p.viewport_rect_raw() // Rect: p.viewport_rect()
 			offset: shy.vec2[f32](shadow_offset, shadow_offset)
 			color: shadow_color
+			origin: .center
 			fills: .body
+			rotation: p.rotation * shy.deg2rad
 		)
 	} else if !p.grabbed && !p.laid {
 		// Draw shadow around the piece
@@ -464,6 +487,7 @@ pub fn (p &Piece) draw() {
 				color: shadow_color
 				width: 3
 			}
+			rotation: p.rotation * shy.deg2rad
 		)
 	}
 
@@ -480,6 +504,7 @@ pub fn (p &Piece) draw() {
 		scale: scale
 		offset: offset
 		region: p.region()
+		rotation: p.rotation * shy.deg2rad
 	)
 
 	/*
@@ -519,6 +544,7 @@ pub fn (p &Piece) draw() {
 				color: color
 				width: 3
 			}
+			rotation: p.rotation * shy.deg2rad
 		)
 	}
 }

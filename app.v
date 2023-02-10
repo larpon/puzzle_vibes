@@ -245,6 +245,7 @@ pub fn (mut a App) init() ! {
 					// println('${a.mode} -> .game')
 					button.scale = 1
 					a.mode = .menu
+					a.puzzle.grabbed = 0
 				}, 150)
 			}
 			return true
@@ -787,27 +788,27 @@ pub fn (mut a App) render_game_frame(dt f64) {
 			grabbed_piece = piece
 		}
 
-		mouse_area := piece.viewport_rect()
 		if piece.hovered {
 			if !a.puzzle.solved {
 				mut color := shy.colors.shy.white
 				color.a = 127
+				mouse_area := piece.viewport_rect_raw()
 				a.quick.rect(
 					// Rect: mouse_area // need int() to round off
 					x: int(mouse_area.x)
 					y: int(mouse_area.y)
 					width: int(mouse_area.width)
 					height: int(mouse_area.height)
+					rotation: piece.rotation * shy.deg2rad // piece rotation is stored as degrees
 					color: color
 					fills: .stroke
+					origin: .center
 					stroke: shy.Stroke{
 						color: color
 					}
 				)
 			}
 		}
-
-		// println(mouse_area)
 	}
 
 	if grabbed_piece != shy.null {
@@ -865,6 +866,12 @@ pub fn (mut a App) start_game() ! {
 		return error('Failed getting selected image')
 	}
 	img := a.assets.get[shy.Image](imse.source)!
+
+	a.puzzle.on_piece_init = fn (mut piece Piece) {
+		// mut p := unsafe { piece }
+		piece.rotation = rand.f32_in_range(-4, 4) or { 0 }
+	}
+
 	a.puzzle.init(
 		app: a
 		viewport: a.canvas.to_rect()
@@ -926,6 +933,7 @@ pub fn (mut a App) event(e shy.Event) {
 						source: image
 					}) or { panic(err) } // TODO
 					a.image_selector.images << entry
+					a.image_selector.selected = a.image_selector.images.len - 1
 				}
 			}
 		}
@@ -983,6 +991,7 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 			match key {
 				.backspace {
 					a.mode = .menu
+					a.puzzle.grabbed = 0
 				}
 				.s {
 					a.puzzle.scramble(do_not_scramble_laid: true) or { panic(err) }
@@ -1010,9 +1019,11 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 			// Handle drop
 			if piece.id == a.puzzle.grabbed {
 				piece.grabbed = false
+				piece.rotation = rand.f32_in_range(-4, 4) or { 0 }
 				a.puzzle.grabbed = 0
 				a.play_sfx_with_random_pitch('Lay')
 				if p := a.puzzle.get_solved_piece(m) {
+					piece.rotation = 0
 					if a.puzzle.has_piece_at(m) {
 						a.play_sfx_with_random_pitch_in_range('Disagree', 0.8, 1.2)
 						// println('Piece already in this quadrant')
@@ -1058,12 +1069,14 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 		// sorting the ones hovered and just grab the first
 		a.hovered_pieces.sort(a.id > b.id)
 		if is_button_event && a.mouse.is_button_down(.left) {
+			// Grab piece
 			if a.puzzle.grabbed == 0 {
 				hovered_piece := a.hovered_pieces[0]
 				for mut piece in a.puzzle.pieces {
 					if piece.id == hovered_piece.id {
 						piece.grabbed = true
 						piece.laid = false
+						piece.rotation = 0
 						a.puzzle.grabbed = piece.id
 						piece.last_pos = piece.pos
 						piece.pos = piece.viewport_to_local(m)
@@ -1080,4 +1093,51 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 		a.play_sfx('Cheering crowd')
 		a.puzzle.reset()
 	}
+}
+
+fn commit_hash() string {
+	mut hash := ''
+	git_exe := os.find_abs_path_of_executable('git') or { '' }
+	if git_exe != '' {
+		mut git_cmd := 'git -C "${exe_dir()}" rev-parse --short HEAD'
+		$if windows {
+			git_cmd = 'git.exe -C "${exe_dir()}" rev-parse --short HEAD'
+		}
+		res := os.execute(git_cmd)
+		if res.exit_code == 0 {
+			hash = res.output
+		}
+	}
+	return hash.trim_space()
+}
+
+fn version_full() string {
+	mut v := version()
+	ch := commit_hash()
+	if ch != '' {
+		v = '${v} ${ch}'
+	}
+	$if debug {
+		v += ' (debug)'
+	}
+	$if prod {
+		v = 'v${v}'
+	}
+	return v
+}
+
+fn version() string {
+	mut v := '0.0.0'
+	vmod := @VMOD_FILE
+	if vmod.len > 0 {
+		if vmod.contains('version:') {
+			v = vmod.all_after('version:').all_before('\n').replace("'", '').replace('"',
+				'').trim_space()
+		}
+	}
+	return v
+}
+
+fn exe_dir() string {
+	return os.dir(os.real_path(os.executable()))
 }

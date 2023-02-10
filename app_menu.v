@@ -45,10 +45,37 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		scale: (a.canvas.width / 1920) * 0.45
 	)
 
+	a.options_button.draw()
 	a.image_selector.draw()
 
 	a.start_button.draw()
-	a.options_button.draw()
+
+	draw_scale := a.window.draw_factor()
+	mut design_factor := f32(1440) / canvas_size.width
+	if design_factor == 0 {
+		design_factor = 1
+	}
+	size_factor := 1 / design_factor * draw_scale
+
+	sb_rect := a.start_button.Button.Rect
+	a.quick.text(
+		x: sb_rect.x
+		y: sb_rect.y + shy.half * sb_rect.height + 20 * size_factor
+		align: .center
+		origin: .center
+		size: 20 * size_factor
+		text: '${a.puzzle_dim.width:.0f}x${a.puzzle_dim.height:.0f} Puzzle, ${int(a.puzzle_dim.area())} pieces'
+	)
+
+	mut version_info := version_full()
+	a.quick.text(
+		x: 10 * size_factor
+		y: canvas_size.height - 10 * size_factor
+		align: .center
+		origin: .bottom_left
+		size: 15 * size_factor
+		text: '${version_info}'
+	)
 }
 
 // [live]
