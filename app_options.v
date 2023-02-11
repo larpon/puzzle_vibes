@@ -50,8 +50,8 @@ pub fn (mut a App) on_options_event_update(e UIEvent) {
 			key := e.key_code
 			match key {
 				.backspace {
-					a.puzzle_dim = a.dim_selector.dim
-					a.mode = .menu
+					a.settings.dimensions = a.dim_selector.dim
+					a.set_mode(.menu)
 				}
 				else {}
 			}

@@ -64,7 +64,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		align: .center
 		origin: .center
 		size: 20 * size_factor
-		text: '${a.puzzle_dim.width:.0f}x${a.puzzle_dim.height:.0f} Puzzle, ${int(a.puzzle_dim.area())} pieces'
+		text: '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
 	)
 
 	mut version_info := version_full()
@@ -92,11 +92,11 @@ pub fn (mut a App) on_menu_event_update(e UIEvent) {
 			match key {
 				.space, .@return, .kp_enter {
 					a.start_game() or { panic(err) }
-					a.mode = .game
+					a.set_mode(.game)
 				}
 				.o {
-					a.dim_selector.dim = a.puzzle_dim
-					a.mode = .options
+					a.dim_selector.dim = a.settings.dimensions
+					a.set_mode(.options)
 				}
 				.left {
 					a.select_prev_image()

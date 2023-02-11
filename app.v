@@ -18,6 +18,7 @@ enum Mode {
 }
 
 pub struct UserSettings {
+mut:
 	music_volume f32 = 1.0
 	sfx_volume   f32 = 1.0
 	images       []string
@@ -31,7 +32,6 @@ mut:
 	settings       &UserSettings = &UserSettings{}
 	mode           Mode //= .game // nice if you're debugging game play
 	puzzle         &Puzzle            = shy.null
-	puzzle_dim     shy.Size           = shy.size(3, 3)
 	image_selector &ImageSelector     = shy.null
 	dim_selector   &DimensionSelector = shy.null
 	start_button   &MenuButton        = shy.null
@@ -46,6 +46,25 @@ mut:
 	hovered_pieces []Piece // To avoid re-allocating a new array every event
 	toast_ids      u16
 	toasts         []Toast
+	//
+	save_settings_next bool
+}
+
+pub fn (mut a App) shutdown() ! {
+	a.save_settings()
+	a.ExampleApp.shutdown()!
+}
+
+fn (mut a App) set_mode(mode Mode) {
+	from := a.mode
+	to := mode
+
+	if to == .menu {
+		if from == .options {
+			a.save_settings()
+		}
+	}
+	a.mode = to
 }
 
 fn (mut a App) load_settings() {
@@ -56,46 +75,17 @@ fn (mut a App) load_settings() {
 	})
 }
 
+fn (mut a App) save_settings_when_time_permits() {
+	a.save_settings_next = true
+}
+
 fn (mut a App) save_settings() {
+	// eprintln('${@FN}')
 	// TODO
 	a.show_toast(Toast{
 		text: 'Settings saved (TODO)'
 		duration: 2.5
 	})
-}
-
-fn (a App) play_sfx_with_volume(entry string, volume f32) {
-	a.quick.play(
-		source: a.asset('sfx/' + a.sfx[entry].file)
-		volume: volume
-	)
-}
-
-fn (a App) play_sfx(entry string) {
-	a.quick.play(
-		source: a.asset('sfx/' + a.sfx[entry].file)
-	)
-}
-
-fn (a App) play_sfx_with_pitch(entry string, pitch f32) {
-	a.quick.play(
-		source: a.asset('sfx/' + a.sfx[entry].file)
-		pitch: pitch
-	)
-}
-
-fn (a App) play_sfx_with_random_pitch(entry string) {
-	a.quick.play(
-		source: a.asset('sfx/' + a.sfx[entry].file)
-		pitch: rand.f32_in_range(0.8, 1.2) or { 0.0 }
-	)
-}
-
-fn (a App) play_sfx_with_random_pitch_in_range(entry string, from f32, to f32) {
-	a.quick.play(
-		source: a.asset('sfx/' + a.sfx[entry].file)
-		pitch: rand.f32_in_range(from, to) or { 0.0 }
-	)
 }
 
 [markused]
@@ -105,6 +95,8 @@ pub fn (mut a App) init() ! {
 
 	icon := $embed_file('assets/images/icon_128x128.png')
 	a.window.set_icon(icon)!
+
+	a.load_settings()
 	// win_size = win_size.mul_scalar(0.5)
 	// win_size.width *= 0.5
 	// win_size.height *= 0.5
@@ -248,7 +240,7 @@ pub fn (mut a App) init() ! {
 			a.shy.once(fn [mut a, mut button] () {
 				// println('${a.mode} -> .game')
 				button.scale = 1
-				a.mode = .game
+				a.set_mode(.game)
 			}, 150)
 			return true
 		}
@@ -279,13 +271,14 @@ pub fn (mut a App) init() ! {
 				}) or {}
 			} else {
 				if a.mode == .options {
-					a.puzzle_dim = a.dim_selector.dim
+					a.settings.dimensions = a.dim_selector.dim
 				}
 				mut button := a.back_button
+
 				a.shy.once(fn [mut a, mut button] () {
 					// println('${a.mode} -> .game')
 					button.scale = 1
-					a.mode = .menu
+					a.set_mode(.menu)
 					a.puzzle.grabbed = 0
 				}, 150)
 			}
@@ -313,8 +306,8 @@ pub fn (mut a App) init() ! {
 				a.shy.once(fn [mut a, mut button] () {
 					// println('${a.mode} -> .options')
 					button.scale = 1
-					a.dim_selector.dim = a.puzzle_dim
-					a.mode = .options
+					a.dim_selector.dim = a.settings.dimensions
+					a.set_mode(.options)
 				}, 150)
 				return true
 			}
@@ -371,6 +364,7 @@ pub fn (mut a App) init() ! {
 						}.displaced_from(.center)
 						if remove_area.contains(a.mouse.x, a.mouse.y) {
 							a.image_selector.remove_selected_image()
+							a.remove_user_image(image.source.str())
 							a.show_toast(Toast{
 								text: 'Removed "${image.name}"'
 								duration: 1.5
@@ -405,7 +399,7 @@ pub fn (mut a App) init() ! {
 	a.dim_selector = &DimensionSelector{
 		a: a
 		dim: shy.size(3, 3)
-		label: '${a.puzzle_dim.width:.0f}x${a.puzzle_dim.height:.0f} Puzzle, ${int(a.puzzle_dim.area())} pieces'
+		label: '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
 		/*
 		on_clicked: fn [mut a] () bool {
 			if a.mode == .options {
@@ -421,6 +415,7 @@ pub fn (mut a App) init() ! {
 						height: cell.y
 					}
 					a.dim_selector.label = '${a.dim_selector.dim.width:.0f}x${a.dim_selector.dim.height:.0f} Puzzle, ${int(a.dim_selector.dim.area())} pieces'
+					a.play_sfx('Squish')
 					// println(cell)
 				}
 			}
@@ -717,55 +712,11 @@ pub fn (mut a App) bind_button_handlers() ! {
 		}
 		if a.puzzle.solved {
 			// println('${a.mode} -> .game')
-			a.mode = .menu
+			a.set_mode(.menu)
 			return true
 		}
 		return false
 	})
-}
-
-pub fn (a &App) stop_music() {
-	for _, v in a.music {
-		if v.sound.is_playing() {
-			v.sound.stop()
-		}
-	}
-}
-
-pub fn (a &App) play_cheer() {
-	a.play_sfx_with_volume('Cheering crowd', 0.435)
-}
-
-pub fn (mut a App) play_music(key string) {
-	a.cur_music = key
-	a.music[a.cur_music].sound.play()
-	// entry := a.music[a.cur_music]
-	// 	a.show_toast(Toast{
-	// 		text: 'Now playing "${entry.info.name}"'
-	// 		duration: 3.5
-	// 	})
-}
-
-pub fn (mut a App) play_random_music() {
-	if a.music.len > 0 {
-		a.stop_music()
-		keys := a.music.keys()
-		mut next := rand.int_in_range(0, keys.len) or { 0 }
-		mut song := keys[next]
-		if a.music.len > 1 {
-			retries := 10
-			mut retry := 0
-			for song == a.cur_music {
-				retry++
-				next = rand.int_in_range(0, keys.len) or { 0 }
-				song = keys[next]
-				if retry >= retries || song != a.cur_music {
-					break
-				}
-			}
-		}
-		a.play_music(song)
-	}
 }
 
 [markused]
@@ -830,6 +781,11 @@ pub fn (mut a App) variable_update(dt f64) {
 		a.back_button.label = 'QUIT'
 	} else {
 		a.back_button.label = 'BACK'
+	}
+
+	if a.save_settings_next {
+		a.save_settings()
+		a.save_settings_next = false
 	}
 }
 
@@ -975,7 +931,7 @@ pub fn (a App) asset(relative_path string) string {
 }
 
 pub fn (mut a App) start_game() ! {
-	a.puzzle_dim = a.dim_selector.dim
+	a.settings.dimensions = a.dim_selector.dim
 	imse := a.image_selector.get_selected_image() or {
 		return error('Failed getting selected image')
 	}
@@ -990,7 +946,7 @@ pub fn (mut a App) start_game() ! {
 		app: a
 		viewport: a.canvas.to_rect()
 		image: img
-		dimensions: a.puzzle_dim
+		dimensions: a.settings.dimensions
 	)!
 
 	a.puzzle.scramble()!
@@ -1030,6 +986,35 @@ fn (mut a App) select_prev_image() {
 	a.play_sfx_with_random_pitch('Whoosh')
 }
 
+pub fn (mut a App) add_user_image(path string) ! {
+	if os.is_file(path) {
+		filename := os.file_name(path)
+		entry := ImageSelectorEntry{
+			removable: true
+			name: filename.all_before_last('.')
+			source: path
+		}
+		a.quick.load(shy.ImageOptions{
+			source: path
+		})!
+		a.image_selector.images << entry
+		a.image_selector.selected = a.image_selector.images.len - 1
+		if path !in a.settings.images {
+			a.settings.images << path
+		}
+	}
+}
+
+pub fn (mut a App) remove_user_image(path string) {
+	for i, image_path in a.settings.images {
+		if path == image_path {
+			a.settings.images.delete(i)
+			break
+		}
+	}
+	a.play_sfx_with_random_pitch_in_range('Disagree', 0.8, 1.2)
+}
+
 [markused]
 pub fn (mut a App) event(e shy.Event) {
 	a.ExampleApp.event(e)
@@ -1038,23 +1023,20 @@ pub fn (mut a App) event(e shy.Event) {
 		shy.DropFileEvent {
 			if a.mode in [.menu, .options] {
 				image := e.path
-				if os.is_file(image) {
-					filename := os.file_name(image)
-					entry := ImageSelectorEntry{
-						removable: true
-						name: filename.all_before_last('.')
-						source: image
-					}
-					a.quick.load(shy.ImageOptions{
-						source: image
-					}) or { panic(err) } // TODO
-					a.image_selector.images << entry
-					a.image_selector.selected = a.image_selector.images.len - 1
+				filename := os.file_name(image)
+				a.add_user_image(image) or {
 					a.show_toast(Toast{
-						text: 'Added ${filename}'
+						text: 'Failed adding "${filename}"'
 						duration: 2.5
 					})
+					return
 				}
+				a.show_toast(Toast{
+					text: 'Added ${filename}'
+					duration: 2.5
+				})
+				a.play_sfx('Squish')
+				a.save_settings_when_time_permits()
 			}
 		}
 		shy.KeyEvent {
@@ -1110,7 +1092,7 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 			key := e.key_code
 			match key {
 				.backspace {
-					a.mode = .menu
+					a.set_mode(.menu)
 					a.puzzle.grabbed = 0
 				}
 				.s {
