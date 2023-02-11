@@ -5,10 +5,12 @@ module main
 
 // import shy.mth
 import shy.lib as shy
+import shy.mth
 
 struct ImageSelectorEntry {
-	name   string
-	source shy.AssetSource
+	removable bool
+	name      string
+	source    shy.AssetSource
 }
 
 [heap]
@@ -26,12 +28,16 @@ mut:
 	on_pressed    fn () bool
 	images        []ImageSelectorEntry
 	selected      int
-pub mut:
-	todo_rm shy.ImageFillMode
 }
 
 fn (ims ImageSelector) get_selected_image() ?ImageSelectorEntry {
 	return ims.images[ims.selected]
+}
+
+fn (mut ims ImageSelector) remove_selected_image() {
+	ims.images.delete(ims.selected)
+	ims.selected--
+	ims.next_image()
 }
 
 fn (mut ims ImageSelector) next_image() {
@@ -105,6 +111,7 @@ fn (ims ImageSelector) draw() {
 	if ims.images.len > 0 {
 		image := ims.images[ims.selected]
 		text = image.name
+		scale := f32(0.95)
 		a.quick.image(
 			x: area_center.x
 			y: area_center.y
@@ -112,9 +119,45 @@ fn (ims ImageSelector) draw() {
 			height: area_center.height
 			source: image.source
 			origin: .center
-			scale: 0.95
+			scale: scale
 			fill_mode: .aspect_crop //.aspect_fit
 		)
+
+		if image.removable {
+			margin := area_center.height * 0.1
+			radius := mth.min(area_center.width, area_center.height) * 0.05
+
+			close_center_x := (area_center.x + (shy.half * area_center.width * scale) - margin) // * scale
+			close_center_y := (area_center.y - (shy.half * area_center.height * scale) + margin) //* scale
+			a.quick.circle(
+				x: int(close_center_x)
+				y: int(close_center_y)
+				radius: int(radius)
+				color: colors.red
+				// origin: .center
+				// fills: .body
+			)
+			a.quick.rect(
+				x: int(close_center_x)
+				y: int(close_center_y)
+				width: int(radius)
+				height: int(radius * 0.2)
+				color: colors.white
+				origin: .center
+				rotation: 45 * shy.deg2rad
+				fills: .body
+			)
+			a.quick.rect(
+				x: int(close_center_x)
+				y: int(close_center_y)
+				width: int(radius)
+				height: int(radius * 0.2)
+				color: colors.white
+				origin: .center
+				rotation: -45 * shy.deg2rad
+				fills: .body
+			)
+		}
 	} else {
 		a.quick.text(
 			x: area_center.x

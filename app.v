@@ -9,6 +9,7 @@ import shy.lib as shy
 import shy.embed
 import shy.particle
 import shy.easy
+import shy.mth
 
 enum Mode {
 	menu
@@ -16,10 +17,18 @@ enum Mode {
 	options
 }
 
+pub struct UserSettings {
+	music_volume f32 = 1.0
+	sfx_volume   f32 = 1.0
+	images       []string
+	dimensions   shy.Size = shy.size(3, 3)
+}
+
 [heap]
 pub struct App {
 	embed.ExampleApp
 mut:
+	settings       &UserSettings = &UserSettings{}
 	mode           Mode //= .game // nice if you're debugging game play
 	puzzle         &Puzzle            = shy.null
 	puzzle_dim     shy.Size           = shy.size(3, 3)
@@ -33,7 +42,33 @@ mut:
 	//
 	sfx            map[string]SFXInfo
 	music          map[string]Music
+	cur_music      string
 	hovered_pieces []Piece // To avoid re-allocating a new array every event
+	toast_ids      u16
+	toasts         []Toast
+}
+
+fn (mut a App) load_settings() {
+	// TODO
+	a.show_toast(Toast{
+		text: 'Settings loaded (TODO)'
+		duration: 2.5
+	})
+}
+
+fn (mut a App) save_settings() {
+	// TODO
+	a.show_toast(Toast{
+		text: 'Settings saved (TODO)'
+		duration: 2.5
+	})
+}
+
+fn (a App) play_sfx_with_volume(entry string, volume f32) {
+	a.quick.play(
+		source: a.asset('sfx/' + a.sfx[entry].file)
+		volume: volume
+	)
 }
 
 fn (a App) play_sfx(entry string) {
@@ -66,6 +101,10 @@ fn (a App) play_sfx_with_random_pitch_in_range(entry string, from f32, to f32) {
 [markused]
 pub fn (mut a App) init() ! {
 	a.ExampleApp.init()!
+	a.window.set_title('Puzzle Vibes')
+
+	icon := $embed_file('assets/images/icon_128x128.png')
+	a.window.set_icon(icon)!
 	// win_size = win_size.mul_scalar(0.5)
 	// win_size.width *= 0.5
 	// win_size.height *= 0.5
@@ -147,20 +186,22 @@ pub fn (mut a App) init() ! {
 		mut sound := asset.to[shy.Sound](shy.SoundOptions{})!
 		sound.on_end = fn (sound shy.Sound) {
 			// println('sound id: ${sound.id} ended')
+			mut app := sound.asset.shy.app[App]()
+			// println('Restarting River Meditation')
+			app.play_random_music()
+		}
+		/*
+		sound.on_start = fn (sound shy.Sound) {
 			app := sound.asset.shy.app[App]()
 			// println('Restarting River Meditation')
-			if app.music.len > 0 {
-				keys := app.music.keys()
-				next := rand.int_in_range(0, keys.len) or { 0 }
-				app.music[keys[next]].sound.play()
-			}
-		}
+			app.play_random_music()
+		}*/
 		a.music[e.name] = Music{
 			info: e
 			sound: sound
 		}
 	}
-	a.music['River Meditation'].sound.play()
+	a.play_music('River Meditation')
 
 	// 	a.music['River Meditation'].on_start = fn (sound shy.Sound) {
 	// 		println('River Meditation started sound id: ${sound.id}')
@@ -311,6 +352,34 @@ pub fn (mut a App) init() ! {
 				// 					width:shy.half * ims_rect.width
 				// 					height: ims_rect.height
 				// 				}
+
+				// Close button click
+				if image := a.image_selector.get_selected_image() {
+					ims_rect_c := a.image_selector.Rect
+					if image.removable {
+						margin := ims_rect_c.height * 0.1
+						radius := (mth.min(ims_rect_c.width, ims_rect_c.height) * 0.05) * 2
+						scale := f32(0.95)
+						close_center_x := (ims_rect_c.x + (shy.half * ims_rect_c.width * scale) - margin)
+						close_center_y := (ims_rect_c.y - (shy.half * ims_rect_c.height * scale) +
+							margin)
+						remove_area := shy.Rect{
+							x: close_center_x
+							y: close_center_y
+							width: radius
+							height: radius
+						}.displaced_from(.center)
+						if remove_area.contains(a.mouse.x, a.mouse.y) {
+							a.image_selector.remove_selected_image()
+							a.show_toast(Toast{
+								text: 'Removed "${image.name}"'
+								duration: 1.5
+							})
+							return true
+						}
+					}
+				}
+
 				if left_side.contains(a.mouse.x, a.mouse.y) {
 					a.select_prev_image()
 				} else {
@@ -655,6 +724,50 @@ pub fn (mut a App) bind_button_handlers() ! {
 	})
 }
 
+pub fn (a &App) stop_music() {
+	for _, v in a.music {
+		if v.sound.is_playing() {
+			v.sound.stop()
+		}
+	}
+}
+
+pub fn (a &App) play_cheer() {
+	a.play_sfx_with_volume('Cheering crowd', 0.435)
+}
+
+pub fn (mut a App) play_music(key string) {
+	a.cur_music = key
+	a.music[a.cur_music].sound.play()
+	// entry := a.music[a.cur_music]
+	// 	a.show_toast(Toast{
+	// 		text: 'Now playing "${entry.info.name}"'
+	// 		duration: 3.5
+	// 	})
+}
+
+pub fn (mut a App) play_random_music() {
+	if a.music.len > 0 {
+		a.stop_music()
+		keys := a.music.keys()
+		mut next := rand.int_in_range(0, keys.len) or { 0 }
+		mut song := keys[next]
+		if a.music.len > 1 {
+			retries := 10
+			mut retry := 0
+			for song == a.cur_music {
+				retry++
+				next = rand.int_in_range(0, keys.len) or { 0 }
+				song = keys[next]
+				if retry >= retries || song != a.cur_music {
+					break
+				}
+			}
+		}
+		a.play_music(song)
+	}
+}
+
 [markused]
 pub fn (mut a App) variable_update(dt f64) {
 	a.ExampleApp.variable_update(dt)
@@ -670,15 +783,15 @@ pub fn (mut a App) variable_update(dt f64) {
 	a.image_selector.Rect = shy.Rect{
 		x: shy.half * canvas_size.width
 		y: shy.half * canvas_size.height + (canvas_size.height * 0.05)
-		width: 0.40 * canvas_size.width
+		width: 0.4 * canvas_size.width
 		height: 0.2 * canvas_size.width
 	}
 
 	a.dim_selector.Rect = shy.Rect{
 		x: shy.half * canvas_size.width
-		y: shy.half * canvas_size.height + (canvas_size.height * 0.05)
-		width: 0.4 * canvas_size.width
-		height: 0.2 * canvas_size.width
+		y: shy.half * canvas_size.height - (canvas_size.height * 0.05)
+		width: 0.3 * canvas_size.width
+		height: 0.18 * canvas_size.width
 	}
 
 	if a.image_selector.images.len > 0 {
@@ -739,6 +852,7 @@ pub fn (mut a App) frame(dt f64) {
 	}
 	// a.draw.pop_matrix()
 	a.back_button.draw()
+	a.draw_toasts(dt)
 }
 
 pub fn (mut a App) render_game_frame(dt f64) {
@@ -925,8 +1039,10 @@ pub fn (mut a App) event(e shy.Event) {
 			if a.mode in [.menu, .options] {
 				image := e.path
 				if os.is_file(image) {
+					filename := os.file_name(image)
 					entry := ImageSelectorEntry{
-						name: os.file_name(image).all_before_last('.')
+						removable: true
+						name: filename.all_before_last('.')
 						source: image
 					}
 					a.quick.load(shy.ImageOptions{
@@ -934,6 +1050,10 @@ pub fn (mut a App) event(e shy.Event) {
 					}) or { panic(err) } // TODO
 					a.image_selector.images << entry
 					a.image_selector.selected = a.image_selector.images.len - 1
+					a.show_toast(Toast{
+						text: 'Added ${filename}'
+						duration: 2.5
+					})
 				}
 			}
 		}
@@ -998,7 +1118,6 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 				}
 				.a {
 					a.puzzle.auto_solve()
-					a.play_sfx('Cheering crowd')
 				}
 				else {}
 			}
@@ -1090,7 +1209,7 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 
 	if solved {
 		// println('SOLVED!')
-		a.play_sfx('Cheering crowd')
+		a.play_cheer()
 		a.puzzle.reset()
 	}
 }

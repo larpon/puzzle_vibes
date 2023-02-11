@@ -104,15 +104,18 @@ pub fn (mut a App) on_menu_event_update(e UIEvent) {
 				.right {
 					a.select_next_image()
 				}
-				/*
 				.up {
-					a.image_selector.todo_rm = a.image_selector.todo_rm.next()
-					dump(a.image_selector.todo_rm)
+					a.stop_music() // play_random_music() <- don't do that here
 				}
 				.down {
-					a.image_selector.todo_rm = a.image_selector.todo_rm.prev()
-					dump(a.image_selector.todo_rm)
-				}*/
+					a.play_cheer()
+				}
+				.t {
+					a.show_toast(
+						text: 'test'
+						duration: 4
+					)
+				}
 				else {}
 			}
 		}

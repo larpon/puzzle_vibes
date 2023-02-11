@@ -8,5 +8,8 @@ import shy.lib as shy
 const colors = Colors{}
 
 struct Colors {
-	blue shy.Color = shy.rgb(24, 143, 216)
+	white shy.Color = shy.colors.shy.white
+	red   shy.Color = shy.colors.shy.red
+	blue  shy.Color = shy.rgb(24, 143, 216)
+	grey  shy.Color = shy.rgb(127, 127, 127)
 }

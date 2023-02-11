@@ -288,6 +288,7 @@ pub fn (mut p Puzzle) auto_solve() {
 		piece.pos = piece.pos_solved
 		piece.last_pos = piece.pos
 		piece.laid = true
+		piece.rotation = 0
 	}
 	p.solved = true
 }
