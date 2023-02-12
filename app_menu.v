@@ -111,10 +111,23 @@ pub fn (mut a App) on_menu_event_update(e UIEvent) {
 					a.play_cheer()
 				}
 				.t {
-					a.show_toast(
-						text: 'test'
-						duration: 4
-					)
+					$if debug {
+						a.show_toast(
+							text: 'test'
+							duration: 4
+						)
+					}
+				}
+				.r {
+					$if debug {
+						a.reset_settings() or {
+							eprintln('Resetting settings failed: ${err}')
+							a.show_toast(
+								text: 'Resetting settings failed'
+								duration: 4
+							)
+						}
+					}
 				}
 				else {}
 			}

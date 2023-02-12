@@ -5,6 +5,7 @@ module main
 
 import os
 import rand
+import time
 import shy.lib as shy
 import shy.embed
 import shy.particle
@@ -15,14 +16,6 @@ enum Mode {
 	menu
 	game
 	options
-}
-
-pub struct UserSettings {
-mut:
-	music_volume f32 = 1.0
-	sfx_volume   f32 = 1.0
-	images       []string
-	dimensions   shy.Size = shy.size(3, 3)
 }
 
 [heap]
@@ -48,10 +41,13 @@ mut:
 	toasts         []Toast
 	//
 	save_settings_next bool
+	//
+	game_start_time u64
+	game_end_time   u64
 }
 
 pub fn (mut a App) shutdown() ! {
-	a.save_settings()
+	a.save_settings() or { eprintln('Saving settings failed: ${err}') }
 	a.ExampleApp.shutdown()!
 }
 
@@ -61,31 +57,19 @@ fn (mut a App) set_mode(mode Mode) {
 
 	if to == .menu {
 		if from == .options {
-			a.save_settings()
+			a.save_settings() or {
+				eprintln('Saving settings failed: ${err}')
+				a.show_toast(Toast{
+					text: 'Saving settings failed'
+					duration: 2.5
+				})
+			}
+		}
+		if from == .game {
+			a.puzzle.grabbed = 0
 		}
 	}
 	a.mode = to
-}
-
-fn (mut a App) load_settings() {
-	// TODO
-	a.show_toast(Toast{
-		text: 'Settings loaded (TODO)'
-		duration: 2.5
-	})
-}
-
-fn (mut a App) save_settings_when_time_permits() {
-	a.save_settings_next = true
-}
-
-fn (mut a App) save_settings() {
-	// eprintln('${@FN}')
-	// TODO
-	a.show_toast(Toast{
-		text: 'Settings saved (TODO)'
-		duration: 2.5
-	})
 }
 
 [markused]
@@ -96,7 +80,6 @@ pub fn (mut a App) init() ! {
 	icon := $embed_file('assets/images/icon_128x128.png')
 	a.window.set_icon(icon)!
 
-	a.load_settings()
 	// win_size = win_size.mul_scalar(0.5)
 	// win_size.width *= 0.5
 	// win_size.height *= 0.5
@@ -279,7 +262,6 @@ pub fn (mut a App) init() ! {
 					// println('${a.mode} -> .game')
 					button.scale = 1
 					a.set_mode(.menu)
-					a.puzzle.grabbed = 0
 				}, 150)
 			}
 			return true
@@ -428,6 +410,10 @@ pub fn (mut a App) init() ! {
 			return false
 		}*/
 	}
+
+	// We load the image here since we need valid references to image_selector and dim_selector
+	a.load_settings()!
+	a.on_resize()
 }
 
 pub fn (mut a App) bind_button_handlers() ! {
@@ -719,9 +705,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 	})
 }
 
-[markused]
-pub fn (mut a App) variable_update(dt f64) {
-	a.ExampleApp.variable_update(dt)
+pub fn (mut a App) on_resize() {
 	// Placement of Start button
 	canvas_size := a.canvas
 	a.start_button.Button.Rect = shy.Rect{
@@ -774,9 +758,15 @@ pub fn (mut a App) variable_update(dt f64) {
 			em.position.y = a.image_selector.y
 		}
 	}
+	a.options_button.on_resize()
+	a.back_button.on_resize()
+}
 
-	a.options_button.variable_update(dt)
-	a.back_button.variable_update(dt)
+// TODO move all this to only happen on window resizing
+[markused]
+pub fn (mut a App) variable_update(dt f64) {
+	a.ExampleApp.variable_update(dt)
+
 	if a.mode == .menu {
 		a.back_button.label = 'QUIT'
 	} else {
@@ -784,7 +774,13 @@ pub fn (mut a App) variable_update(dt f64) {
 	}
 
 	if a.save_settings_next {
-		a.save_settings()
+		a.save_settings() or {
+			eprintln('Saving settings failed: ${err}')
+			a.show_toast(Toast{
+				text: 'Saving settings failed'
+				duration: 2.5
+			})
+		}
 		a.save_settings_next = false
 	}
 }
@@ -809,6 +805,164 @@ pub fn (mut a App) frame(dt f64) {
 	// a.draw.pop_matrix()
 	a.back_button.draw()
 	a.draw_toasts(dt)
+}
+
+// asset returns a `string` with the full path to the asset.
+// asset unifies locating project assets.
+pub fn (a App) asset(relative_path string) string {
+	path := relative_path // relative_path.replace('\\','/')
+	$if wasm32_emscripten || android {
+		return path
+	}
+	return os.resource_abs_path(os.join_path('assets', path))
+}
+
+pub fn (mut a App) start_game() ! {
+	a.settings.dimensions = a.dim_selector.dim
+	imse := a.image_selector.get_selected_image() or {
+		return error('Failed getting selected image')
+	}
+	img := a.assets.get[shy.Image](imse.source)!
+
+	a.puzzle.on_piece_init = fn (mut piece Piece) {
+		// mut p := unsafe { piece }
+		piece.rotation = rand.f32_in_range(-4, 4) or { 0 }
+	}
+
+	a.puzzle.init(
+		app: a
+		viewport: a.canvas.to_rect()
+		image: img
+		dimensions: a.settings.dimensions
+	)!
+
+	a.puzzle.scramble()!
+	a.game_start_time = a.shy.ticks()
+}
+
+pub fn (mut a App) end_game() {
+	a.game_end_time = a.shy.ticks()
+}
+
+fn (mut a App) select_next_image() {
+	if a.mode != .menu {
+		return
+	}
+	mut emitters := a.ps.emitters()
+	for i, mut em in emitters {
+		if i == 0 {
+			em.burst(400)
+		}
+	}
+	a.image_selector.next_image()
+	a.play_sfx_with_random_pitch('Whoosh')
+}
+
+fn (mut a App) select_prev_image() {
+	if a.mode != .menu {
+		return
+	}
+	// TODO reference bug
+	// if mut emitter := a.ps.emitter_at_index(0) {
+	//	emitter.burst(100)
+	//}
+	// TODO
+	mut emitters := a.ps.emitters()
+	for i, mut em in emitters {
+		if i == 0 {
+			em.burst(400)
+		}
+	}
+
+	a.image_selector.prev_image()
+	a.play_sfx_with_random_pitch('Whoosh')
+}
+
+pub fn (mut a App) add_user_image(path string) ! {
+	if os.is_file(path) {
+		filename := os.file_name(path)
+		entry := ImageSelectorEntry{
+			removable: true
+			name: filename.all_before_last('.')
+			source: path
+		}
+		a.quick.load(shy.ImageOptions{
+			source: path
+		})!
+		a.image_selector.images << entry
+		a.image_selector.selected = a.image_selector.images.len - 1
+		if path !in a.settings.images {
+			a.settings.images << path
+			// println(a.settings.images)
+		}
+	}
+}
+
+pub fn (mut a App) remove_user_image(path string) {
+	for i, image_path in a.settings.images {
+		if path == image_path {
+			a.settings.images.delete(i)
+			break
+		}
+	}
+	a.play_sfx_with_random_pitch_in_range('Disagree', 0.8, 1.2)
+}
+
+[markused]
+pub fn (mut a App) event(e shy.Event) {
+	a.ExampleApp.event(e)
+
+	match e {
+		shy.DropFileEvent {
+			if a.mode in [.menu, .options] {
+				image := e.path
+				filename := os.file_name(image)
+				a.add_user_image(image) or {
+					a.show_toast(Toast{
+						text: 'Failed adding "${filename}"'
+						duration: 2.5
+					})
+					return
+				}
+				a.show_toast(Toast{
+					text: 'Added ${filename}'
+					duration: 2.5
+				})
+				a.play_sfx('Squish')
+				a.save_settings_when_time_permits()
+			}
+		}
+		shy.KeyEvent {
+			a.on_menu_event_update(e)
+			a.on_options_event_update(e)
+			a.on_game_event_update(e)
+			if e.state == .up {
+				return
+			}
+			key := e.key_code
+			// kb := a.kbd
+			// alt_is_held := (kb.is_key_down(.lalt) || kb.is_key_down(.ralt))
+			match key {
+				.p {
+					// 					mut s := a.music['River Meditation']
+					// 					s.pause(!s.is_paused())
+				}
+				else {}
+			}
+		}
+		shy.MouseMotionEvent {
+			a.on_game_event_update(e)
+		}
+		shy.MouseButtonEvent {
+			a.on_game_event_update(e)
+		}
+		shy.WindowResizeEvent {
+			mut viewport := a.canvas.to_rect()
+			a.puzzle.set_viewport(viewport)
+			a.on_resize()
+		}
+		else {}
+	}
 }
 
 pub fn (mut a App) render_game_frame(dt f64) {
@@ -894,10 +1048,43 @@ pub fn (mut a App) render_game_frame(dt f64) {
 			fills: .body
 		)
 
-		mut cover := a.canvas.to_rect()
-		cover.y = cover.height * 0.3333
-		cover.height *= 0.3333
+		font_size_factor := 1 / design_factor * a.window.draw_factor()
 
+		font_size := f32(192) * font_size_factor
+		excellent_text := a.easy.text(
+			x: a.canvas.width * shy.half
+			y: a.canvas.height * shy.half
+			align: .center
+			origin: .center
+			size: font_size
+			text: 'EXCELLENT'
+		)
+		et_bounds := excellent_text.bounds()
+
+		// TODO
+		show_play_time := true
+		mut play_time_text := a.easy.text(size: 0)
+		if show_play_time {
+			play_time := time.Duration(i64(a.game_end_time - a.game_start_time) * 1000000)
+			play_time_text = a.easy.text(
+				x: (a.canvas.width * shy.half)
+				y: (a.canvas.height * shy.half) + (shy.half * et_bounds.height) //* 1.1
+				align: .center
+				origin: .top_center
+				size: f32(60) * font_size_factor
+				text: 'Puzzle solved in ${play_time}'
+				offset: shy.vec2[f32](0, 10 * font_size_factor)
+			)
+		}
+		ptt_bounds := play_time_text.bounds()
+
+		mut cover := a.canvas.to_rect()
+		cover.y = (a.canvas.height * shy.half) - shy.half * et_bounds.height - (shy.half * et_bounds.height * 0.2)
+		cover.height = et_bounds.height + 2 * (shy.half * et_bounds.height * 0.2)
+		if show_play_time {
+			cover.y -= shy.half * ptt_bounds.height
+			cover.height += ptt_bounds.height * 2
+		}
 		mut color := shy.colors.shy.green
 		color.a = 180
 		a.quick.rect(
@@ -906,168 +1093,10 @@ pub fn (mut a App) render_game_frame(dt f64) {
 			fills: .body
 		)
 
-		font_size_factor := 1 / design_factor * a.window.draw_factor()
+		excellent_text.draw()
+		play_time_text.draw()
 
-		font_size := f32(192) * font_size_factor
-		a.quick.text(
-			x: a.canvas.width * shy.half
-			y: a.canvas.height * shy.half
-			align: .center
-			origin: .center
-			size: font_size
-			text: 'EXCELLENT'
-		)
-	}
-}
-
-// asset returns a `string` with the full path to the asset.
-// asset unifies locating project assets.
-pub fn (a App) asset(relative_path string) string {
-	path := relative_path // relative_path.replace('\\','/')
-	$if wasm32_emscripten || android {
-		return path
-	}
-	return os.resource_abs_path(os.join_path('assets', path))
-}
-
-pub fn (mut a App) start_game() ! {
-	a.settings.dimensions = a.dim_selector.dim
-	imse := a.image_selector.get_selected_image() or {
-		return error('Failed getting selected image')
-	}
-	img := a.assets.get[shy.Image](imse.source)!
-
-	a.puzzle.on_piece_init = fn (mut piece Piece) {
-		// mut p := unsafe { piece }
-		piece.rotation = rand.f32_in_range(-4, 4) or { 0 }
-	}
-
-	a.puzzle.init(
-		app: a
-		viewport: a.canvas.to_rect()
-		image: img
-		dimensions: a.settings.dimensions
-	)!
-
-	a.puzzle.scramble()!
-}
-
-fn (mut a App) select_next_image() {
-	if a.mode != .menu {
-		return
-	}
-	mut emitters := a.ps.emitters()
-	for i, mut em in emitters {
-		if i == 0 {
-			em.burst(400)
-		}
-	}
-	a.image_selector.next_image()
-	a.play_sfx_with_random_pitch('Whoosh')
-}
-
-fn (mut a App) select_prev_image() {
-	if a.mode != .menu {
-		return
-	}
-	// TODO reference bug
-	// if mut emitter := a.ps.emitter_at_index(0) {
-	//	emitter.burst(100)
-	//}
-	// TODO
-	mut emitters := a.ps.emitters()
-	for i, mut em in emitters {
-		if i == 0 {
-			em.burst(400)
-		}
-	}
-
-	a.image_selector.prev_image()
-	a.play_sfx_with_random_pitch('Whoosh')
-}
-
-pub fn (mut a App) add_user_image(path string) ! {
-	if os.is_file(path) {
-		filename := os.file_name(path)
-		entry := ImageSelectorEntry{
-			removable: true
-			name: filename.all_before_last('.')
-			source: path
-		}
-		a.quick.load(shy.ImageOptions{
-			source: path
-		})!
-		a.image_selector.images << entry
-		a.image_selector.selected = a.image_selector.images.len - 1
-		if path !in a.settings.images {
-			a.settings.images << path
-		}
-	}
-}
-
-pub fn (mut a App) remove_user_image(path string) {
-	for i, image_path in a.settings.images {
-		if path == image_path {
-			a.settings.images.delete(i)
-			break
-		}
-	}
-	a.play_sfx_with_random_pitch_in_range('Disagree', 0.8, 1.2)
-}
-
-[markused]
-pub fn (mut a App) event(e shy.Event) {
-	a.ExampleApp.event(e)
-
-	match e {
-		shy.DropFileEvent {
-			if a.mode in [.menu, .options] {
-				image := e.path
-				filename := os.file_name(image)
-				a.add_user_image(image) or {
-					a.show_toast(Toast{
-						text: 'Failed adding "${filename}"'
-						duration: 2.5
-					})
-					return
-				}
-				a.show_toast(Toast{
-					text: 'Added ${filename}'
-					duration: 2.5
-				})
-				a.play_sfx('Squish')
-				a.save_settings_when_time_permits()
-			}
-		}
-		shy.KeyEvent {
-			a.on_menu_event_update(e)
-			a.on_options_event_update(e)
-			a.on_game_event_update(e)
-			if e.state == .up {
-				return
-			}
-			key := e.key_code
-			// kb := a.kbd
-			// alt_is_held := (kb.is_key_down(.lalt) || kb.is_key_down(.ralt))
-			match key {
-				.p {
-					// 					mut s := a.music['River Meditation']
-					// 					s.pause(!s.is_paused())
-				}
-				else {}
-			}
-		}
-		shy.MouseMotionEvent {
-			a.on_game_event_update(e)
-		}
-		shy.MouseButtonEvent {
-			a.on_game_event_update(e)
-		}
-		shy.WindowResizeEvent {
-			mut viewport := a.canvas.to_rect()
-			a.puzzle.set_viewport(viewport)
-		}
-		else {}
+		// println(et_bounds)
 	}
 }
 
@@ -1081,6 +1110,17 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 	}
 
 	if a.puzzle.solved {
+		if e is shy.KeyEvent {
+			if e.state == .up {
+				return
+			}
+			match e.key_code {
+				.backspace {
+					a.set_mode(.menu)
+				}
+				else {}
+			}
+		}
 		return
 	}
 
@@ -1093,7 +1133,6 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 			match key {
 				.backspace {
 					a.set_mode(.menu)
-					a.puzzle.grabbed = 0
 				}
 				.s {
 					a.puzzle.scramble(do_not_scramble_laid: true) or { panic(err) }
@@ -1191,6 +1230,7 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 
 	if solved {
 		// println('SOLVED!')
+		a.end_game()
 		a.play_cheer()
 		a.puzzle.reset()
 	}

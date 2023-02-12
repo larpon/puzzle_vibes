@@ -157,7 +157,7 @@ fn (bb BackButton) draw() {
 	)
 }
 
-fn (mut bb BackButton) variable_update(dt f64) {
+fn (mut bb BackButton) on_resize() {
 	canvas_size := bb.a.canvas
 	area := shy.Rect{
 		x: canvas_size.width - 10 - (0.07 * canvas_size.width) + ((0.07 * canvas_size.width) * 0.5)
@@ -208,7 +208,7 @@ fn (ob OptionsButton) draw() {
 	)
 }
 
-fn (mut ob OptionsButton) variable_update(dt f64) {
+fn (mut ob OptionsButton) on_resize() {
 	canvas_size := ob.a.canvas
 	area := shy.Rect{
 		x: 10 + (0.04 * canvas_size.width) + ((0.04 * canvas_size.width) * 0.5)
