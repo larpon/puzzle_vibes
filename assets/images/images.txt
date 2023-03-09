@@ -1,0 +1,13 @@
+# Format:
+# One entry per line:
+# Pretty name | file relative to dir | URL | Comment
+# Use "#" (hash mark) as first char on a line to make a comment <- like this :)
+# Use "|" (pipe mark) to seperate sections on each line entry
+#
+# Test | test_image.jpg | |
+#
+# Credit list of images in this directory.
+Pixel Art Ruins | classical_ruin_tiles.png | https://opengameart.org/content/classical-ruin-tiles | By user surt https://opengameart.org/users/surt under a CC0 license.
+Raspberries | pexels-any-lane-5946101.jpg | https://images.pexels.com/photos/5946101/pexels-photo-5946101.jpeg?cs=srgb&dl=pexels-any-lane-5946101.jpg&fm=jpg | By Any Lane under a permissive license https://www.pexels.com/license/
+Cut Fruits | pexels-engin-akyurt-1435735.jpg | https://images.pexels.com/photos/1435735/pexels-photo-1435735.jpeg?cs=srgb&dl=pexels-engin-akyurt-1435735.jpg&fm=jpg | By Engin Akyurt under a permissive license https://www.pexels.com/license/
+Colors | colors.jpg | https://stocksnap.io/photo/colorful-squares-XA7VFV8XPD | By Artsy Crafty licensed under CC0.

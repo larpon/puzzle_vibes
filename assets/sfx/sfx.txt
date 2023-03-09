@@ -1,0 +1,13 @@
+# Format:
+# Pretty name | file relative to dir | URL | Comment
+# One entry per line
+# Use "#" (hash mark) as first char on a line to make a comment <- like this :)
+# Use "|" (pipe mark) to seperate sections on each line entry
+#
+# Credit list of sound effects in this directory.
+Cheering crowd | 333404__jayfrosting__cheer-2.flac | https://freesound.org/s/333404 | By user jayfrosting under CC0 license, converted from wav to flac
+Whoosh | 60013__qubodup__whoosh.flac | https://freesound.org/s/60013 | By user qubodup under CC0 license
+Squish | 382637__kaydinhamby__tomato-squish.flac | https://freesound.org/s/382637 | By user kaydinhamby under CC0 license, shortened and converted from wav to flac
+Take | 270393__littlerobotsoundfactory__inventory_open_00.flac | https://freesound.org/s/270393 | By user LittleRobotSoundFactory under CC0 license, edited and converted from wav to flac
+Lay | 270393__littlerobotsoundfactory__inventory_open_00_reverse.flac | https://freesound.org/s/270393 | By user LittleRobotSoundFactory under CC0 license, edited and converted from wav to flac
+Disagree | 520262__hisoul__eris-disagree-answer-stupid_2.flac | https://freesound.org/s/520262 | By user hisoul under CC0 license, edited and converted from wav to flac

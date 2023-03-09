@@ -1,0 +1,15 @@
+# Format:
+# One entry per line
+# Use "#" (hash mark) as first char on a line to make a comment <- like this :)
+# Use "|" (pipe mark) to seperate sections on each line entry
+#
+# Credit list of music in this directory.
+# Selected from: https://freepd.com
+# Landra's Dream | Landra's Dream.mp3 | https://freepd.com/music/Landra's%20Dream.mp3 | Written by Jason Shaw. Inspiring, uplifting and positive track made with bright and light acoustic guitars. Sentimental/Warm/Romantic This music is available for commercial and non-commercial purposes.
+# Study and Relax | Study and Relax.mp3 | https://freepd.com/music/Study%20and%20Relax.mp3 | Written by Kevin MacLeod. Like a worn out record with a mis-punched spindle hole. Thanks, izope! :-) This music is available for commercial and non-commercial purposes.
+Lovely Piano Song | Lovely Piano Song.mp3 | https://freepd.com/music/Lovely%20Piano%20Song.mp3 | Written by Rafael Krux. Two in love described with emotional and lovely piano melody. This music is available for commercial and non-commercial purposes.
+# Lucky Break | Lucky Break.mp3 | https://freepd.com/music/Lucky%20Break.mp3 | Written by Bryan Teoh. Nicklas Waroff on sax. This music is available for commercial and non-commercial purposes.
+# Night in Venice | Night in Venice.mp3 | https://freepd.com/music/Night%20in%20Venice.mp3 | Written by Kevin MacLeod. Just your run of the mill nice jazz; processed to sound a lot older than it is. This music is available for commercial and non-commercial purposes.
+Nostalgic Piano | Nostalgic Piano.mp3 | https://freepd.com/music/Nostalgic%20Piano.mp3 | Written by Rafael Krux. Two in love, except they are not together. He is thinking of her on a rainy day, watching thru the window near the fireplace. This music is available for commercial and non-commercial purposes.
+Pond | Pond.mp3 | https://freepd.com/music/Pond.mp3 | Written by Rafael Krux. Positive, gentle and soft. Flowing like a water from the pond. Inspiring, playful and lively. This music is available for commercial and non-commercial purposes.
+River Meditation | River Meditation.mp3 | https://freepd.com/music/River%20Meditation.mp3 | Written by Jason Shaw. Light, uplifting, motivating and inspiring track made with acoustic guitars, upbeat drums and more. Perfect summer vibe! This music is available for commercial and non-commercial purposes.
