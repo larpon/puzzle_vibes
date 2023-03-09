@@ -381,7 +381,6 @@ pub fn (mut a App) init() ! {
 	a.dim_selector = &DimensionSelector{
 		a: a
 		dim: shy.size(3, 3)
-		label: '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
 		/*
 		on_clicked: fn [mut a] () bool {
 			if a.mode == .options {
@@ -413,6 +412,9 @@ pub fn (mut a App) init() ! {
 
 	// We load the image here since we need valid references to image_selector and dim_selector
 	a.load_settings()!
+
+	a.dim_selector.label = '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
+
 	a.on_resize()
 }
 
@@ -762,7 +764,6 @@ pub fn (mut a App) on_resize() {
 	a.back_button.on_resize()
 }
 
-// TODO move all this to only happen on window resizing
 [markused]
 pub fn (mut a App) variable_update(dt f64) {
 	a.ExampleApp.variable_update(dt)
@@ -787,8 +788,8 @@ pub fn (mut a App) variable_update(dt f64) {
 
 [markused]
 pub fn (mut a App) frame(dt f64) {
-	// a.draw.push_matrix()
-	// a.draw.scale(0.5,0.5,1)
+	//a.draw.push_matrix()
+	//a.draw.scale(0.5,0.5,1)
 	// a.draw.translate(0,1280,0)
 	// println('mode: ${a.mode}')
 	match a.mode {
@@ -802,7 +803,7 @@ pub fn (mut a App) frame(dt f64) {
 			a.render_options_frame(dt)
 		}
 	}
-	// a.draw.pop_matrix()
+	//a.draw.pop_matrix()
 	a.back_button.draw()
 	a.draw_toasts(dt)
 }
