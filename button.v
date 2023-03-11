@@ -10,7 +10,7 @@ import shy.lib as shy
 struct Button {
 	shy.Rect
 mut:
-	a             &App
+	a             &App = unsafe { nil }
 	label         string
 	scale         f32 = 1.0
 	click_started bool
