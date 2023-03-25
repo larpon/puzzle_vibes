@@ -18,6 +18,22 @@ enum Mode {
 	options
 }
 
+enum GameMode {
+	relaxed
+	time
+}
+
+fn game_mode_from_string(s string) GameMode {
+	return match s {
+		'time' {
+			.time
+		}
+		else {
+			.relaxed
+		}
+	}
+}
+
 [heap]
 pub struct App {
 	embed.ExampleApp
@@ -788,8 +804,8 @@ pub fn (mut a App) variable_update(dt f64) {
 
 [markused]
 pub fn (mut a App) frame(dt f64) {
-	//a.draw.push_matrix()
-	//a.draw.scale(0.5,0.5,1)
+	// a.draw.push_matrix()
+	// a.draw.scale(0.5,0.5,1)
 	// a.draw.translate(0,1280,0)
 	// println('mode: ${a.mode}')
 	match a.mode {
@@ -803,7 +819,7 @@ pub fn (mut a App) frame(dt f64) {
 			a.render_options_frame(dt)
 		}
 	}
-	//a.draw.pop_matrix()
+	// a.draw.pop_matrix()
 	a.back_button.draw()
 	a.draw_toasts(dt)
 }

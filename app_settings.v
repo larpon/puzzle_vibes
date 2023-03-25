@@ -14,6 +14,7 @@ mut:
 	sfx_volume   f32 = 1.0
 	images       []string
 	dimensions   shy.Size = shy.size(3, 3)
+	game_mode    GameMode = .relaxed
 }
 
 fn (mut us UserSettings) defaults() {
@@ -71,6 +72,10 @@ fn (mut a App) load_settings() ! {
 		}
 		a.dim_selector.dim = a.settings.dimensions
 
+		if game_mode := toml_doc.value_opt('app.game_mode') {
+			a.settings.game_mode = game_mode_from_string(game_mode as string)
+		}
+
 		mut images := []string{}
 		if toml_images := toml_doc.value_opt('app.images') {
 			toml_any_arr := toml_images.array()
@@ -102,6 +107,7 @@ format_version = "1.0.0"
 	dimensions.height = ${a.settings.dimensions.height}
 
 [app]
+  game_mode = "${a.settings.game_mode}"
 '
 	mut images_txt := '\timages = [\n'
 	for image in a.settings.images {
