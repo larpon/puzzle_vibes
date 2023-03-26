@@ -10,7 +10,7 @@ import shy.lib as shy
 struct Button {
 	shy.Rect
 mut:
-	a             &App = unsafe { nil }
+	app             &App = unsafe { nil }
 	label         string
 	scale         f32 = 1.0
 	click_started bool
@@ -22,7 +22,7 @@ mut:
 }
 
 fn (b Button) draw() {
-	a := b.a
+	a := b.app
 
 	mut text := b.label
 	area := b.Rect
@@ -77,7 +77,7 @@ struct MenuButton {
 }
 
 fn (mb MenuButton) draw() {
-	a := mb.a
+	a := mb.app
 
 	mut text := mb.label
 	area := mb.Button.Rect
@@ -126,7 +126,7 @@ struct BackButton {
 
 fn (bb BackButton) draw() {
 	// bb.Button.draw()
-	a := bb.a
+	a := bb.app
 
 	mut text := bb.label
 	area := bb.Button.Rect
@@ -158,7 +158,7 @@ fn (bb BackButton) draw() {
 }
 
 fn (mut bb BackButton) on_resize() {
-	canvas_size := bb.a.canvas
+	canvas_size := bb.app.canvas
 	area := shy.Rect{
 		x: canvas_size.width - 10 - (0.07 * canvas_size.width) + ((0.07 * canvas_size.width) * 0.5)
 		y: 10 + ((0.08 * canvas_size.height) * 0.5)
@@ -177,7 +177,7 @@ struct OptionsButton {
 
 fn (ob OptionsButton) draw() {
 	// bb.Button.draw()
-	a := ob.a
+	a := ob.app
 
 	mut text := ob.label
 	area := ob.Button.Rect
@@ -209,7 +209,7 @@ fn (ob OptionsButton) draw() {
 }
 
 fn (mut ob OptionsButton) on_resize() {
-	canvas_size := ob.a.canvas
+	canvas_size := ob.app.canvas
 	area := shy.Rect{
 		x: 10 + (0.04 * canvas_size.width) + ((0.04 * canvas_size.width) * 0.5)
 		y: 10 + ((0.08 * canvas_size.height) * 0.5)

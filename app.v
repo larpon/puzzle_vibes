@@ -231,7 +231,7 @@ pub fn (mut a App) init() ! {
 
 	// Menu
 	a.start_button = &MenuButton{
-		a: a
+		app: a
 		label: 'START'
 		on_clicked: fn [mut a] () bool {
 			mut button := a.start_button
@@ -258,7 +258,7 @@ pub fn (mut a App) init() ! {
 
 	// Game
 	a.back_button = &BackButton{
-		a: a
+		app: a
 		label: 'QUIT'
 		on_clicked: fn [mut a] () bool {
 			if a.mode == .menu {
@@ -296,7 +296,7 @@ pub fn (mut a App) init() ! {
 	}
 
 	a.options_button = &OptionsButton{
-		a: a
+		app: a
 		label: 'OPTIONS'
 		on_clicked: fn [mut a] () bool {
 			if a.mode == .menu {
