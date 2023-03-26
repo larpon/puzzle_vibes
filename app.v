@@ -325,7 +325,7 @@ pub fn (mut a App) init() ! {
 	}
 
 	a.image_selector = &ImageSelector{
-		a: a
+		app: a
 		label: 'Select a puzzle'
 		images: puzzle_images
 		on_clicked: fn [mut a] () bool {

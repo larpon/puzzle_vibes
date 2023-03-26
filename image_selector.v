@@ -17,7 +17,7 @@ struct ImageSelectorEntry {
 struct ImageSelector {
 	shy.Rect
 mut:
-	a             &App
+	app           &App
 	label         string
 	scale         f32 = 1.0
 	click_started bool
@@ -72,7 +72,7 @@ fn (ims &ImageSelector) de_origin_rect() shy.Rect {
 
 //[live]
 fn (ims ImageSelector) draw() {
-	a := ims.a
+	a := ims.app
 
 	mut text := ims.label
 	area_center := ims.Rect
