@@ -395,7 +395,7 @@ pub fn (mut a App) init() ! {
 	}
 
 	a.dim_selector = &DimensionSelector{
-		a: a
+		app: a
 		dim: shy.size(3, 3)
 		/*
 		on_clicked: fn [mut a] () bool {

@@ -11,7 +11,7 @@ import shy.vec { Vec2 }
 struct DimensionSelector {
 	shy.Rect
 mut:
-	a     &App
+	app   &App
 	label string
 	dim   shy.Size = shy.size(3, 3)
 	// min Vec2[f32] = shy.vec2[f32](1,1)
@@ -58,7 +58,7 @@ fn (dims &DimensionSelector) to_cell(xy Vec2[f32]) ?Vec2[int] {
 
 //[live]
 fn (dims &DimensionSelector) draw() {
-	a := dims.a
+	a := dims.app
 
 	// min := dims.min
 	max := dims.max
