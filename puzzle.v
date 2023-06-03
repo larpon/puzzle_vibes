@@ -57,7 +57,7 @@ mut:
 pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
 	mut puzzle := &Puzzle{
 		app: pc.app
-    image: pc.image
+		image: pc.image
 	}
 	puzzle.init(pc)!
 
@@ -88,7 +88,6 @@ pub fn (mut p Puzzle) init(pc PuzzleConfig) ! {
 	p.viewport = viewport
 	p.width = img.width
 	p.height = img.height
-	//p.image = img
 	p.piece_size = piece_size
 	p.dim = dim
 
