@@ -1021,7 +1021,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 
 	a.puzzle.draw()
 
-	mut grabbed_piece := &Piece(0)
+	mut grabbed_piece := &Piece(unsafe { nil })
 	for piece in a.puzzle.pieces {
 		if !piece.grabbed {
 			piece.draw()
