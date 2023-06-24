@@ -69,6 +69,9 @@ pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
 pub fn (mut p Puzzle) init(pc PuzzleConfig) ! {
 	a := pc.app
 	viewport := pc.viewport
+
+	// Since Puzzle instances can be reused, we assign the image again
+	p.image = pc.image
 	img := p.image
 	dim := pc.dimensions
 
