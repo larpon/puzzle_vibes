@@ -25,7 +25,7 @@ mut:
 	scale         f32
 	margin        f32 = 0.75 // 0.1 - 0.9; percentage of minimum available screen space to fill
 	solved        bool
-	on_piece_init fn (mut piece Piece)
+	on_piece_init ?fn (mut piece Piece)
 }
 
 [params]
@@ -135,8 +135,8 @@ pub fn (mut p Puzzle) init(pc PuzzleConfig) ! {
 				pos_solved: pos_solved
 				size: size
 			}
-			if !isnil(p.on_piece_init) {
-				p.on_piece_init(mut piece)
+			if on_piece_init := p.on_piece_init {
+				on_piece_init(mut piece)
 			}
 			assert !isnil(piece.puzzle)
 			assert !isnil(piece.app)
