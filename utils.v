@@ -7,18 +7,16 @@ import os
 
 [unsafe]
 fn commit_hash() string {
-	mut static hash := ''
-	if hash == '' {
-		git_exe := os.find_abs_path_of_executable('git') or { '' }
-		if git_exe != '' {
-			mut git_cmd := 'git -C "${exe_dir()}" rev-parse --short HEAD'
-			$if windows {
-				git_cmd = 'git.exe -C "${exe_dir()}" rev-parse --short HEAD'
-			}
-			res := os.execute(git_cmd)
-			if res.exit_code == 0 {
-				hash = res.output
-			}
+	mut hash := ''
+	git_exe := os.find_abs_path_of_executable('git') or { '' }
+	if git_exe != '' {
+		mut git_cmd := 'git -C "${exe_dir()}" rev-parse --short HEAD'
+		$if windows {
+			git_cmd = 'git.exe -C "${exe_dir()}" rev-parse --short HEAD'
+		}
+		res := os.execute(git_cmd)
+		if res.exit_code == 0 {
+			hash = res.output
 		}
 	}
 	return hash.trim_space()
