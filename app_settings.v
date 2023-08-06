@@ -101,7 +101,9 @@ format_version = "1.0.0"
 
 [sfx]
 	volume = ${a.settings.sfx_volume:.3f}
-
+'
+  // TODO BUG workaround for V gcc compilation error on Windows?!
+  toml_txt += '
 [puzzle]
 	dimensions.width  = ${a.settings.dimensions.width}
 	dimensions.height = ${a.settings.dimensions.height}
