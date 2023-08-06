@@ -60,6 +60,8 @@ mut:
 	//
 	game_start_time u64
 	game_end_time   u64
+	//
+	version_full string = version_full()
 }
 
 pub fn (mut a App) shutdown() ! {

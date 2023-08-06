@@ -67,7 +67,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		text: '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
 	)
 
-	mut version_info := version_full()
+	mut version_info := a.version_full
 	a.quick.text(
 		x: 10 * size_factor
 		y: canvas_size.height - 10 * size_factor
