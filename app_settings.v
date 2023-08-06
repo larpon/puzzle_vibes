@@ -96,24 +96,30 @@ fn (mut a App) save_settings() ! {
 	mut toml_txt := '# Puzzle Vibes settings file
 format_version = "1.0.0"
 '
-  // TODO BUG workaround for V gcc compilation error on Windows?!
-  toml_txt += '
+	// TODO BUG workaround for V gcc compilation error on Windows?!
+	toml_txt += '
 [music]
-	volume = ${a.settings.music_volume:.3f}
-'
-  toml_txt += '
+	volume = ${a.settings.music_volume:.3f}'
+
+	toml_txt += '
+
 [sfx]
-	volume = ${a.settings.sfx_volume:.3f}
-'
-  toml_txt += '
+	volume = ${a.settings.sfx_volume:.3f}'
+
+	toml_txt += '
+
 [puzzle]
-	dimensions.width  = ${a.settings.dimensions.width}
-	dimensions.height = ${a.settings.dimensions.height}
-'
-  toml_txt += '
+	dimensions.width  = ${a.settings.dimensions.width}'
+
+	toml_txt += '
+	dimensions.height = ${a.settings.dimensions.height}'
+
+	toml_txt += '
+
 [app]
   game_mode = "${a.settings.game_mode}"
 '
+
 	mut images_txt := '\timages = [\n'
 	for image in a.settings.images {
 		images_txt += "\t\t'${image}',\n"
