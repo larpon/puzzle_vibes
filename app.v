@@ -833,6 +833,17 @@ pub fn (a App) asset(relative_path string) string {
 	$if wasm32_emscripten || android {
 		return path
 	}
+	$if darwin {
+		exe_dir := os.resource_abs_path('').trim_right(os.path_seperator)
+		if exe_dir.ends_with('MacOS') {
+			if real_path(os.join_path(exe_dir, '..')).ends_with('Contents') {
+				if real_path(os.join_path(exe_dir, '..', '..')).ends_with('.app') {
+					return real_path(os.join_path(exe_dir, '..', '..', 'Resources', 'assets',
+						path))
+				}
+			}
+		}
+	}
 	return os.resource_abs_path(os.join_path('assets', path))
 }
 
