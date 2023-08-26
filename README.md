@@ -2,6 +2,8 @@
 
 A "jigsaw"-like puzzle game written in V.
 
+<a href="https://blackgrain.itch.io/puzzle-vibes">Download and play pre-built versions of the game from itch.io</a>
+
 The source code of Puzzle Vibes is free software covered by the [GPLv3 license](LICENSE).
 
 Some in-game assets are licensed individually, please see [assets/images/images.txt](assets/images/images.txt), 
