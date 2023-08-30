@@ -139,6 +139,7 @@ pub fn (mut a App) init() ! {
 	))
 
 	a.quick.load(shy.ImageOptions{
+		rescale: a.window.draw_factor()
 		source: a.asset(default_image)
 	})!
 
@@ -155,6 +156,7 @@ pub fn (mut a App) init() ! {
 		}
 		if entry !in puzzle_images {
 			a.quick.load(shy.ImageOptions{
+				rescale: a.window.draw_factor()
 				source: image
 			})!
 			puzzle_images << entry
@@ -162,10 +164,12 @@ pub fn (mut a App) init() ! {
 	}
 
 	a.quick.load(shy.ImageOptions{
+		rescale: a.window.draw_factor()
 		source: a.asset('images/puzzle_vibes_logo.png')
 	})!
 
 	a.quick.load(shy.ImageOptions{
+		rescale: a.window.draw_factor()
 		source: a.asset('images/seamless_wooden_texture.jpg')
 		wrap_u: .repeat
 		wrap_v: .repeat
@@ -918,6 +922,7 @@ pub fn (mut a App) add_user_image(path string) ! {
 			source: path
 		}
 		a.quick.load(shy.ImageOptions{
+			rescale: a.window.draw_factor()
 			source: path
 		})!
 		a.image_selector.images << entry
