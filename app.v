@@ -93,6 +93,7 @@ fn (mut a App) set_mode(mode Mode) {
 [markused]
 pub fn (mut a App) init() ! {
 	a.ExampleApp.init()!
+	// a.draw.scale_factor(1.0)
 	a.window.set_title('Puzzle Vibes')
 
 	icon := $embed_file('assets/images/icon_128x128.png')
