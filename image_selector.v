@@ -30,6 +30,12 @@ mut:
 	selected      int
 }
 
+fn (ims ImageSelector) window_rect() shy.Rect {
+	f := ims.app.canvas.factor
+	sf := f32(1) / f * f
+	return ims.Rect.mul_scalar(sf)
+}
+
 fn (ims ImageSelector) get_selected_image() ?ImageSelectorEntry {
 	return ims.images[ims.selected]
 }
@@ -60,8 +66,8 @@ fn (mut ims ImageSelector) prev_image() {
 	}
 }
 
-fn (ims &ImageSelector) de_origin_rect() shy.Rect {
-	ims_rect := ims.Rect
+fn (ims &ImageSelector) window_de_origin_rect() shy.Rect {
+	ims_rect := ims.window_rect()
 	return shy.Rect{
 		x: ims_rect.x - shy.half * ims_rect.width
 		y: ims_rect.y - shy.half * ims_rect.height
@@ -77,8 +83,8 @@ fn (ims ImageSelector) draw() {
 	mut text := ims.label
 	area_center := ims.Rect
 	// top_left := shy.vec2(area_center.x - shy.half * area_center.width,area_center.y - shy.half * area_center.height)
-	canvas_size := a.canvas
-	draw_scale := a.window.draw_factor()
+	draw_canvas := a.canvas
+	draw_scale := a.canvas.factor
 	mut bgcolor := shy.rgba(0, 0, 0, 57)
 	if ims.is_hovered {
 		bgcolor.a = 67
@@ -102,7 +108,7 @@ fn (ims ImageSelector) draw() {
 		scale: ims.scale
 	)
 
-	mut design_factor := f32(1440) / canvas_size.width
+	mut design_factor := f32(1440) / draw_canvas.width
 	if design_factor == 0 {
 		design_factor = 1
 	}

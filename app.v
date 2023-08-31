@@ -90,10 +90,24 @@ fn (mut a App) set_mode(mode Mode) {
 	a.mode = to
 }
 
+pub fn (mut a App) update_canvas() {
+	// For playing around with fake "high DPI"
+
+	/*
+	fake := f32(2)
+	a.set_canvas(shy.Canvas{
+    ...a.window.canvas()
+    factor: fake
+    factor_x: fake
+    factor_y: fake
+  })
+	*/
+}
+
 [markused]
 pub fn (mut a App) init() ! {
 	a.ExampleApp.init()!
-	// a.draw.scale_factor(1.0)
+	a.update_canvas()
 	a.window.set_title('Puzzle Vibes')
 
 	icon := $embed_file('assets/images/icon_128x128.png')
@@ -139,7 +153,6 @@ pub fn (mut a App) init() ! {
 	))
 
 	a.quick.load(shy.ImageOptions{
-		rescale: a.window.draw_factor()
 		source: a.asset(default_image)
 	})!
 
@@ -156,7 +169,6 @@ pub fn (mut a App) init() ! {
 		}
 		if entry !in puzzle_images {
 			a.quick.load(shy.ImageOptions{
-				rescale: a.window.draw_factor()
 				source: image
 			})!
 			puzzle_images << entry
@@ -164,12 +176,10 @@ pub fn (mut a App) init() ! {
 	}
 
 	a.quick.load(shy.ImageOptions{
-		rescale: a.window.draw_factor()
 		source: a.asset('images/puzzle_vibes_logo.png')
 	})!
 
 	a.quick.load(shy.ImageOptions{
-		rescale: a.window.draw_factor()
 		source: a.asset('images/seamless_wooden_texture.jpg')
 		wrap_u: .repeat
 		wrap_v: .repeat
@@ -226,7 +236,7 @@ pub fn (mut a App) init() ! {
 		})!
 	}
 
-	viewport := a.canvas.to_rect()
+	viewport := a.canvas.rect()
 
 	a.puzzle = new_puzzle(
 		app: a
@@ -337,7 +347,7 @@ pub fn (mut a App) init() ! {
 		images: puzzle_images
 		on_clicked: fn [mut a] () bool {
 			if a.mode == .menu {
-				ims_rect := a.image_selector.de_origin_rect()
+				ims_rect := a.image_selector.window_de_origin_rect()
 				left_side := shy.Rect{
 					x: ims_rect.x
 					y: ims_rect.y
@@ -353,7 +363,7 @@ pub fn (mut a App) init() ! {
 
 				// Close button click
 				if image := a.image_selector.get_selected_image() {
-					ims_rect_c := a.image_selector.Rect
+					ims_rect_c := a.image_selector.window_rect()
 					if image.removable {
 						margin := ims_rect_c.height * 0.1
 						radius := (mth.min(ims_rect_c.width, ims_rect_c.height) * 0.05) * 2
@@ -450,7 +460,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 		mut handled := false
 		mut bb := a.back_button
-		mut area := bb.Button.Rect
+		mut area := bb.Button.window_rect()
 		mut mouse_area := area.displaced_from(.center)
 		if mouse_area.contains(mouse.x, mouse.y) {
 			// println(mbe.clicks)
@@ -462,7 +472,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 		if a.mode == .menu {
 			mut mb := a.start_button
-			area = mb.Button.Rect
+			area = mb.Button.window_rect()
 			mouse_area = area.displaced_from(.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
@@ -473,7 +483,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			}
 
 			mut ob := a.options_button
-			area = ob.Button.Rect
+			area = ob.Button.window_rect()
 			mouse_area = area.displaced_from(.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
@@ -484,7 +494,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			}
 
 			mut ims := a.image_selector
-			area = ims.Rect
+			area = ims.window_rect()
 			mouse_area = area.displaced_from(.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				// println(imse.clicks)
@@ -497,7 +507,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 		if a.mode == .options {
 			mut dims := a.dim_selector
-			area = dims.Rect
+			area = dims.window_rect()
 			mouse_area = area.displaced_from(.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				// println(imse.clicks)
@@ -516,7 +526,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 		mut handled := false
 		mut bb := a.back_button
-		mut area := bb.Button.Rect
+		mut area := bb.Button.window_rect()
 		mut mouse_area := area.displaced_from(.center)
 		if mouse_area.contains(mouse.x, mouse.y) {
 			bb.is_hovered = true
@@ -535,7 +545,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 		if a.mode == .menu {
 			mut mb := a.start_button
-			area = mb.Button.Rect
+			area = mb.Button.window_rect()
 			mouse_area = area.displaced_from(.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				mb.is_hovered = true
@@ -550,7 +560,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			}
 
 			mut ob := a.options_button
-			area = ob.Button.Rect
+			area = ob.Button.window_rect()
 			mouse_area = area.displaced_from(.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				ob.is_hovered = true
@@ -565,7 +575,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			}
 
 			mut ims := a.image_selector
-			area = ims.Rect
+			area = ims.window_rect()
 			mouse_area = area.displaced_from(.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				ims.is_hovered = true
@@ -582,7 +592,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 		if a.mode == .options {
 			mut dims := a.dim_selector
-			area = dims.Rect
+			area = dims.window_rect()
 			mouse_area = area.displaced_from(.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				dims.is_hovered = true
@@ -609,7 +619,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 		mut bb := a.back_button
 		mut was_started := bb.click_started
 		bb.click_started = false
-		mut area := bb.Button.Rect
+		mut area := bb.Button.window_rect()
 		mut mouse_area := area.displaced_from(.center)
 		if was_started && mouse_area.contains(mouse.x, mouse.y) {
 			// println(mbe.clicks)
@@ -634,7 +644,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			mut mb := a.start_button
 			was_started = mb.click_started
 			mb.click_started = false
-			area = mb.Button.Rect
+			area = mb.Button.window_rect()
 			mb_mouse_area = area.displaced_from(.center)
 			if was_started && mb_mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
@@ -646,7 +656,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			mut ob := a.options_button
 			was_started = ob.click_started
 			ob.click_started = false
-			area = ob.Button.Rect
+			area = ob.Button.window_rect()
 			ob_mouse_area = area.displaced_from(.center)
 			if was_started && ob_mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
@@ -658,7 +668,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			mut ims := a.image_selector
 			was_started = ims.click_started
 			ims.click_started = false
-			area = ims.Rect
+			area = ims.window_rect()
 			ims_mouse_area = area.displaced_from(.center)
 			if was_started && ims_mouse_area.contains(mouse.x, mouse.y) {
 				// println(imse.clicks)
@@ -671,7 +681,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			mut dims := a.dim_selector
 			was_started = dims.click_started
 			dims.click_started = false
-			area = dims.Rect
+			area = dims.window_rect()
 			dims_mouse_area = area.displaced_from(.center)
 			if was_started && dims_mouse_area.contains(mouse.x, mouse.y) {
 				// println(imse.clicks)
@@ -732,26 +742,27 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 pub fn (mut a App) on_resize() {
 	// Placement of Start button
-	canvas_size := a.canvas
+	a.update_canvas()
+	draw_canvas := a.canvas
 	a.start_button.Button.Rect = shy.Rect{
-		x: shy.half * canvas_size.width
-		y: 0.85 * canvas_size.height //+ (canvas_size.height * 0.15)
-		width: 0.12 * canvas_size.width
-		height: 0.05 * canvas_size.width
+		x: shy.half * draw_canvas.width
+		y: 0.85 * draw_canvas.height //+ (draw_canvas.height * 0.15)
+		width: 0.12 * draw_canvas.width
+		height: 0.05 * draw_canvas.width
 	}
 
 	a.image_selector.Rect = shy.Rect{
-		x: shy.half * canvas_size.width
-		y: shy.half * canvas_size.height + (canvas_size.height * 0.05)
-		width: 0.4 * canvas_size.width
-		height: 0.2 * canvas_size.width
+		x: shy.half * draw_canvas.width
+		y: shy.half * draw_canvas.height + (draw_canvas.height * 0.05)
+		width: 0.4 * draw_canvas.width
+		height: 0.2 * draw_canvas.width
 	}
 
 	a.dim_selector.Rect = shy.Rect{
-		x: shy.half * canvas_size.width
-		y: shy.half * canvas_size.height - (canvas_size.height * 0.05)
-		width: 0.3 * canvas_size.width
-		height: 0.18 * canvas_size.width
+		x: shy.half * draw_canvas.width
+		y: shy.half * draw_canvas.height - (draw_canvas.height * 0.05)
+		width: 0.3 * draw_canvas.width
+		height: 0.18 * draw_canvas.width
 	}
 
 	if a.image_selector.images.len > 0 {
@@ -866,7 +877,7 @@ pub fn (mut a App) start_game() ! {
 
 	a.puzzle.init(
 		app: a
-		viewport: a.canvas.to_rect()
+		viewport: a.canvas.rect()
 		image: img
 		dimensions: a.settings.dimensions
 	)!
@@ -922,7 +933,6 @@ pub fn (mut a App) add_user_image(path string) ! {
 			source: path
 		}
 		a.quick.load(shy.ImageOptions{
-			rescale: a.window.draw_factor()
 			source: path
 		})!
 		a.image_selector.images << entry
@@ -993,7 +1003,7 @@ pub fn (mut a App) event(e shy.Event) {
 			a.on_game_event_update(e)
 		}
 		shy.WindowResizeEvent {
-			mut viewport := a.canvas.to_rect()
+			mut viewport := a.canvas.rect()
 			a.puzzle.set_viewport(viewport)
 			a.on_resize()
 		}
@@ -1079,12 +1089,12 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		mut bgcolor := shy.colors.shy.white
 		bgcolor.a = 30
 		a.quick.rect(
-			Rect: a.canvas.to_rect()
+			Rect: a.canvas.rect()
 			color: bgcolor
 			fills: .body
 		)
 
-		font_size_factor := 1 / design_factor * a.window.draw_factor()
+		font_size_factor := 1 / design_factor * a.canvas.factor
 
 		font_size := f32(192) * font_size_factor
 		excellent_text := a.easy.text(
@@ -1114,7 +1124,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		}
 		ptt_bounds := play_time_text.bounds()
 
-		mut cover := a.canvas.to_rect()
+		mut cover := a.canvas.rect()
 		cover.y = (a.canvas.height * shy.half) - shy.half * et_bounds.height - (shy.half * et_bounds.height * 0.2)
 		cover.height = et_bounds.height + 2 * (shy.half * et_bounds.height * 0.2)
 		if show_play_time {

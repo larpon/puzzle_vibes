@@ -7,8 +7,8 @@ import shy.lib as shy
 
 //[live]
 pub fn (mut a App) render_menu_frame(dt f64) {
-	canvas_size := a.canvas
-	// println(canvas_size)
+	draw_canvas := a.canvas
+	// println(draw_canvas)
 
 	// Background
 	a.quick.image(
@@ -22,10 +22,10 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 
 	/*
 	a.quick.rect(
-		x: shy.half * canvas_size.width
-		y: shy.half * canvas_size.height
-		width: canvas_size.width
-		height: canvas_size.height
+		x: shy.half * draw_canvas.width
+		y: shy.half * draw_canvas.height
+		width: draw_canvas.width
+		height: draw_canvas.height
 		origin: .center
 		color: bgcolor
 		stroke: shy.Stroke{
@@ -37,11 +37,11 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 
 	// Logo
 	a.quick.image(
-		x: shy.half * canvas_size.width
-		y: shy.half * canvas_size.height
+		x: shy.half * draw_canvas.width
+		y: shy.half * draw_canvas.height
 		source: a.asset('images/puzzle_vibes_logo.png')
 		origin: .center
-		offset: shy.vec2[f32](0, -(canvas_size.height * 0.32))
+		offset: shy.vec2[f32](0, -(draw_canvas.height * 0.32))
 		scale: (a.canvas.width / 1920) * 0.45
 	)
 
@@ -50,8 +50,8 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 
 	a.start_button.draw()
 
-	draw_scale := a.window.draw_factor()
-	mut design_factor := f32(1440) / canvas_size.width
+	draw_scale := a.canvas.factor
+	mut design_factor := f32(1440) / draw_canvas.width
 	if design_factor == 0 {
 		design_factor = 1
 	}
@@ -70,7 +70,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 	mut version_info := a.version_full
 	a.quick.text(
 		x: 10 * size_factor
-		y: canvas_size.height - 10 * size_factor
+		y: draw_canvas.height - 10 * size_factor
 		align: .center
 		origin: .bottom_left
 		size: 15 * size_factor

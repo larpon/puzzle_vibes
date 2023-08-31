@@ -7,25 +7,25 @@ import shy.lib as shy
 
 //[live]
 pub fn (mut a App) render_options_frame(dt f64) {
-	canvas_size := a.canvas
+	draw_canvas := a.canvas
 
 	a.quick.image(
 		source: a.asset('images/seamless_wooden_texture.jpg')
-		width: canvas_size.width
-		height: canvas_size.height
+		width: draw_canvas.width
+		height: draw_canvas.height
 		fill_mode: .tile
 	)
 
-	draw_scale := a.window.draw_factor()
+	draw_scale := a.canvas.factor
 
-	mut design_factor := f32(1440) / canvas_size.width
+	mut design_factor := f32(1440) / draw_canvas.width
 	if design_factor == 0 {
 		design_factor = 1
 	}
 	size_factor := 1 / design_factor * draw_scale
 	a.quick.text(
-		x: shy.half * canvas_size.width
-		y: canvas_size.height * 0.1
+		x: shy.half * draw_canvas.width
+		y: draw_canvas.height * 0.1
 		align: .center
 		origin: .center
 		size: 30 * size_factor

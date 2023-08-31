@@ -65,7 +65,7 @@ pub fn (a &App) draw_toasts(dt f64) {
 		y := a.canvas.height * 0.1
 		mut color := colors.white
 		mut frame_bg_color := colors.grey
-		draw_scale := a.window.draw_factor()
+		draw_scale := a.canvas.factor
 		mut design_factor := f32(1440) / a.canvas.width
 		if design_factor == 0 {
 			design_factor = 1

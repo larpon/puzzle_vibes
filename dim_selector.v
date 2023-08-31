@@ -25,8 +25,14 @@ mut:
 	on_pressed    fn () bool = unsafe { nil } // TODO V BUG: using ?fn () bool doesn't work with closures
 }
 
-fn (dims &DimensionSelector) de_origin_rect() shy.Rect {
-	dims_rect := dims.Rect
+fn (dims DimensionSelector) window_rect() shy.Rect {
+	f := dims.app.canvas.factor
+	sf := f32(1) / f * f
+	return dims.Rect.mul_scalar(sf)
+}
+
+fn (dims &DimensionSelector) window_de_origin_rect() shy.Rect {
+	dims_rect := dims.window_rect()
 	return shy.Rect{
 		x: dims_rect.x - shy.half * dims_rect.width
 		y: dims_rect.y - shy.half * dims_rect.height
@@ -66,8 +72,8 @@ fn (dims &DimensionSelector) draw() {
 	mut text := dims.label
 	area_center := dims.Rect
 	top_left := shy.vec2(area_center.x - shy.half * area_center.width, area_center.y - shy.half * area_center.height)
-	canvas_size := a.canvas
-	draw_scale := a.window.draw_factor()
+	draw_canvas := a.canvas
+	draw_scale := a.canvas.factor
 	mut bgcolor := shy.rgba(0, 0, 0, 57)
 	if dims.is_hovered {
 		bgcolor.a = 67
@@ -91,7 +97,7 @@ fn (dims &DimensionSelector) draw() {
 		scale: dims.scale
 	)
 
-	mut design_factor := f32(1440) / canvas_size.width
+	mut design_factor := f32(1440) / draw_canvas.width
 	if design_factor == 0 {
 		design_factor = 1
 	}
