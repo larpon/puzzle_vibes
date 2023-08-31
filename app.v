@@ -92,7 +92,6 @@ fn (mut a App) set_mode(mode Mode) {
 
 pub fn (mut a App) update_canvas() {
 	// For playing around with fake "high DPI"
-
 	/*
 	fake := f32(2)
 	a.set_canvas(shy.Canvas{
@@ -113,22 +112,18 @@ pub fn (mut a App) init() ! {
 	icon := $embed_file('assets/images/icon_128x128.png')
 	a.window.set_icon(icon)!
 
-	// win_size = win_size.mul_scalar(0.5)
-	// win_size.width *= 0.5
-	// win_size.height *= 0.5
-
 	a.ps = a.easy.new_particle_system(
-		width: a.canvas.width
-		height: a.canvas.height
+		width: a.canvas().width
+		height: a.canvas().height
 		pool: 2500
 	)
 
-	design_factor := f32(1440) / a.canvas.width
+	design_factor := f32(1440) / a.canvas().width
 	scale := f32(2.0) * 1 / design_factor
 	a.ps.add(&particle.Emitter{
 		enabled: false // true
 		rate: 50
-		position: shy.vec2[f32](shy.half * a.canvas.width, shy.half * a.canvas.height)
+		position: shy.vec2[f32](shy.half * a.canvas().width, shy.half * a.canvas().height)
 		velocity: particle.AngleDirection{
 			angle: 0
 			angle_variation: 360
@@ -153,6 +148,7 @@ pub fn (mut a App) init() ! {
 	))
 
 	a.quick.load(shy.ImageOptions{
+		resize: a.canvas().factor
 		source: a.asset(default_image)
 	})!
 
@@ -169,6 +165,7 @@ pub fn (mut a App) init() ! {
 		}
 		if entry !in puzzle_images {
 			a.quick.load(shy.ImageOptions{
+				resize: a.canvas().factor
 				source: image
 			})!
 			puzzle_images << entry
@@ -176,10 +173,12 @@ pub fn (mut a App) init() ! {
 	}
 
 	a.quick.load(shy.ImageOptions{
+		resize: a.canvas().factor
 		source: a.asset('images/puzzle_vibes_logo.png')
 	})!
 
 	a.quick.load(shy.ImageOptions{
+		resize: a.canvas().factor
 		source: a.asset('images/seamless_wooden_texture.jpg')
 		wrap_u: .repeat
 		wrap_v: .repeat
@@ -236,7 +235,7 @@ pub fn (mut a App) init() ! {
 		})!
 	}
 
-	viewport := a.canvas.rect()
+	viewport := a.canvas().rect()
 
 	a.puzzle = new_puzzle(
 		app: a
@@ -743,7 +742,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 pub fn (mut a App) on_resize() {
 	// Placement of Start button
 	a.update_canvas()
-	draw_canvas := a.canvas
+	draw_canvas := a.canvas()
 	a.start_button.Button.Rect = shy.Rect{
 		x: shy.half * draw_canvas.width
 		y: 0.85 * draw_canvas.height //+ (draw_canvas.height * 0.15)
@@ -767,7 +766,7 @@ pub fn (mut a App) on_resize() {
 
 	if a.image_selector.images.len > 0 {
 		mut emitters := a.ps.emitters()
-		design_factor := f32(1440) / a.canvas.width
+		design_factor := f32(1440) / a.canvas().width
 		scale := f32(2.0) * (1 / design_factor)
 		for mut em in emitters {
 			// TODO this is stupid
@@ -877,7 +876,7 @@ pub fn (mut a App) start_game() ! {
 
 	a.puzzle.init(
 		app: a
-		viewport: a.canvas.rect()
+		viewport: a.canvas().rect()
 		image: img
 		dimensions: a.settings.dimensions
 	)!
@@ -933,6 +932,7 @@ pub fn (mut a App) add_user_image(path string) ! {
 			source: path
 		}
 		a.quick.load(shy.ImageOptions{
+			resize: a.canvas().factor
 			source: path
 		})!
 		a.image_selector.images << entry
@@ -1003,7 +1003,7 @@ pub fn (mut a App) event(e shy.Event) {
 			a.on_game_event_update(e)
 		}
 		shy.WindowResizeEvent {
-			mut viewport := a.canvas.rect()
+			mut viewport := a.canvas().rect()
 			a.puzzle.set_viewport(viewport)
 			a.on_resize()
 		}
@@ -1012,7 +1012,7 @@ pub fn (mut a App) event(e shy.Event) {
 }
 
 pub fn (mut a App) render_game_frame(dt f64) {
-	mut design_factor := f32(1440) / a.canvas.width
+	mut design_factor := f32(1440) / a.canvas().width
 	if design_factor == 0 {
 		design_factor = 1
 	}
@@ -1022,8 +1022,8 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		// x: 0
 		// y: 0
 		source: a.asset('images/seamless_wooden_texture.jpg')
-		width: a.canvas.width
-		height: a.canvas.height
+		width: a.canvas().width
+		height: a.canvas().height
 		fill_mode: .tile
 	)
 
@@ -1089,17 +1089,17 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		mut bgcolor := shy.colors.shy.white
 		bgcolor.a = 30
 		a.quick.rect(
-			Rect: a.canvas.rect()
+			Rect: a.canvas().rect()
 			color: bgcolor
 			fills: .body
 		)
 
-		font_size_factor := 1 / design_factor * a.canvas.factor
+		font_size_factor := 1 / design_factor * a.canvas().factor
 
 		font_size := f32(192) * font_size_factor
 		excellent_text := a.easy.text(
-			x: a.canvas.width * shy.half
-			y: a.canvas.height * shy.half
+			x: a.canvas().width * shy.half
+			y: a.canvas().height * shy.half
 			align: .center
 			origin: .center
 			size: font_size
@@ -1113,8 +1113,8 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		if show_play_time {
 			play_time := time.Duration(i64(a.game_end_time - a.game_start_time) * 1000000)
 			play_time_text = a.easy.text(
-				x: (a.canvas.width * shy.half)
-				y: (a.canvas.height * shy.half) + (shy.half * et_bounds.height) //* 1.1
+				x: (a.canvas().width * shy.half)
+				y: (a.canvas().height * shy.half) + (shy.half * et_bounds.height) //* 1.1
 				align: .center
 				origin: .top_center
 				size: f32(60) * font_size_factor
@@ -1124,8 +1124,8 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		}
 		ptt_bounds := play_time_text.bounds()
 
-		mut cover := a.canvas.rect()
-		cover.y = (a.canvas.height * shy.half) - shy.half * et_bounds.height - (shy.half * et_bounds.height * 0.2)
+		mut cover := a.canvas().rect()
+		cover.y = (a.canvas().height * shy.half) - shy.half * et_bounds.height - (shy.half * et_bounds.height * 0.2)
 		cover.height = et_bounds.height + 2 * (shy.half * et_bounds.height * 0.2)
 		if show_play_time {
 			cover.y -= shy.half * ptt_bounds.height

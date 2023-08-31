@@ -517,7 +517,7 @@ pub fn (p &Piece) draw() {
 	if design_factor == 0 {
 		design_factor = 1
 	}
-	font_size_factor := 1/design_factor * a.canvas.factor * p.puzzle.scale
+	font_size_factor := 1/design_factor * a.canvas().factor * p.puzzle.scale
 	font_size := f32(22) * font_size_factor
 	a.quick.text(
 		x: pos.x

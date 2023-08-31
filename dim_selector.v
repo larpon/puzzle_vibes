@@ -26,7 +26,7 @@ mut:
 }
 
 fn (dims DimensionSelector) window_rect() shy.Rect {
-	f := dims.app.canvas.factor
+	f := dims.app.canvas().factor
 	sf := f32(1) / f * f
 	return dims.Rect.mul_scalar(sf)
 }
@@ -72,8 +72,8 @@ fn (dims &DimensionSelector) draw() {
 	mut text := dims.label
 	area_center := dims.Rect
 	top_left := shy.vec2(area_center.x - shy.half * area_center.width, area_center.y - shy.half * area_center.height)
-	draw_canvas := a.canvas
-	draw_scale := a.canvas.factor
+	draw_canvas := a.canvas()
+	draw_scale := a.canvas().factor
 	mut bgcolor := shy.rgba(0, 0, 0, 57)
 	if dims.is_hovered {
 		bgcolor.a = 67

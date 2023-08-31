@@ -7,7 +7,7 @@ import shy.lib as shy
 
 //[live]
 pub fn (mut a App) render_menu_frame(dt f64) {
-	draw_canvas := a.canvas
+	draw_canvas := a.canvas()
 	// println(draw_canvas)
 
 	// Background
@@ -15,8 +15,8 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		// x: 0
 		// y: 0
 		source: a.asset('images/seamless_wooden_texture.jpg')
-		width: a.canvas.width
-		height: a.canvas.height
+		width: a.canvas().width
+		height: a.canvas().height
 		fill_mode: .tile
 	)
 
@@ -42,7 +42,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		source: a.asset('images/puzzle_vibes_logo.png')
 		origin: .center
 		offset: shy.vec2[f32](0, -(draw_canvas.height * 0.32))
-		scale: (a.canvas.width / 1920) * 0.45
+		scale: (a.canvas().width / 1920) * 0.45
 	)
 
 	a.options_button.draw()
@@ -50,7 +50,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 
 	a.start_button.draw()
 
-	draw_scale := a.canvas.factor
+	draw_scale := a.canvas().factor
 	mut design_factor := f32(1440) / draw_canvas.width
 	if design_factor == 0 {
 		design_factor = 1

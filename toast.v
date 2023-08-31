@@ -61,12 +61,12 @@ pub fn (mut a App) show_toast(toast Toast) {
 
 pub fn (a &App) draw_toasts(dt f64) {
 	if toast := a.toasts[0] {
-		x := shy.half * a.canvas.width
-		y := a.canvas.height * 0.1
+		x := shy.half * a.canvas().width
+		y := a.canvas().height * 0.1
 		mut color := colors.white
 		mut frame_bg_color := colors.grey
-		draw_scale := a.canvas.factor
-		mut design_factor := f32(1440) / a.canvas.width
+		draw_scale := a.canvas().factor
+		mut design_factor := f32(1440) / a.canvas().width
 		if design_factor == 0 {
 			design_factor = 1
 		}

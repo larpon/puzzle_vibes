@@ -26,8 +26,8 @@ fn (b Button) draw() {
 
 	mut text := b.label
 	area := b.Rect
-	draw_canvas := a.canvas
-	draw_scale := a.canvas.factor
+	draw_canvas := a.canvas()
+	draw_scale := a.canvas().factor
 	mut bgcolor := shy.colors.shy.red
 	if b.is_hovered {
 		bgcolor = shy.colors.shy.blue
@@ -71,7 +71,7 @@ fn (b Button) draw() {
 fn (mut b Button) variable_update(dt f64) {}
 
 fn (b Button) window_rect() shy.Rect {
-	f := b.app.canvas.factor
+	f := b.app.canvas().factor
 	sf := f32(1) / f * f
 	return b.Rect.mul_scalar(sf)
 }
@@ -87,8 +87,8 @@ fn (mb MenuButton) draw() {
 
 	mut text := mb.label
 	area := mb.Button.Rect
-	draw_canvas := a.canvas
-	draw_scale := a.canvas.factor
+	draw_canvas := a.canvas()
+	draw_scale := a.canvas().factor
 	base_color := colors.blue
 	mut bgcolor := base_color
 	if mb.is_hovered {
@@ -136,8 +136,8 @@ fn (bb BackButton) draw() {
 
 	mut text := bb.label
 	area := bb.Button.Rect
-	draw_canvas := a.canvas
-	draw_scale := a.canvas.factor
+	draw_canvas := a.canvas()
+	draw_scale := a.canvas().factor
 	mut color := shy.colors.shy.white
 	if bb.is_hovered {
 		color.a = 200 // shy.colors.shy.blue
@@ -164,7 +164,7 @@ fn (bb BackButton) draw() {
 }
 
 fn (mut bb BackButton) on_resize() {
-	draw_canvas := bb.app.canvas
+	draw_canvas := bb.app.canvas()
 	area := shy.Rect{
 		x: draw_canvas.width - 10 - (0.07 * draw_canvas.width) + ((0.07 * draw_canvas.width) * 0.5)
 		y: 10 + ((0.08 * draw_canvas.height) * 0.5)
@@ -187,8 +187,8 @@ fn (ob OptionsButton) draw() {
 
 	mut text := ob.label
 	area := ob.Button.Rect
-	draw_canvas := a.canvas
-	draw_scale := a.canvas.factor
+	draw_canvas := a.canvas()
+	draw_scale := a.canvas().factor
 	mut color := shy.colors.shy.white
 	if ob.is_hovered {
 		color.a = 200 // shy.colors.shy.blue
@@ -215,7 +215,7 @@ fn (ob OptionsButton) draw() {
 }
 
 fn (mut ob OptionsButton) on_resize() {
-	draw_canvas := ob.app.canvas
+	draw_canvas := ob.app.canvas()
 	area := shy.Rect{
 		x: 10 + (0.04 * draw_canvas.width) + ((0.04 * draw_canvas.width) * 0.5)
 		y: 10 + ((0.08 * draw_canvas.height) * 0.5)

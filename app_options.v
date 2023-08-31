@@ -7,7 +7,7 @@ import shy.lib as shy
 
 //[live]
 pub fn (mut a App) render_options_frame(dt f64) {
-	draw_canvas := a.canvas
+	draw_canvas := a.canvas()
 
 	a.quick.image(
 		source: a.asset('images/seamless_wooden_texture.jpg')
@@ -16,7 +16,7 @@ pub fn (mut a App) render_options_frame(dt f64) {
 		fill_mode: .tile
 	)
 
-	draw_scale := a.canvas.factor
+	draw_scale := a.canvas().factor
 
 	mut design_factor := f32(1440) / draw_canvas.width
 	if design_factor == 0 {
