@@ -10,7 +10,7 @@ import shy.utils
 import shy.vec { Vec2 }
 // import shy.matrix
 
-[heap]
+@[heap]
 struct Puzzle {
 	shy.Rect // Holds the board top-left *scaled* x,y pos *inside* the viewport, width and height are the original image w/h before scaling
 	app &App // TODO abstract drawing out into user-land?
@@ -28,7 +28,7 @@ mut:
 	on_piece_init ?fn (mut piece Piece)
 }
 
-[params]
+@[params]
 struct PuzzleConfig {
 	app        &App     // TODO abstract drawing out into user-land?
 	viewport   shy.Rect // Area defining the rendered output
@@ -36,7 +36,7 @@ struct PuzzleConfig {
 	dimensions shy.Size = shy.size(3, 3) // width: amount of horizontal pieces, height: amount of vertical pieces
 }
 
-[heap]
+@[heap]
 struct Piece {
 	app    &App
 	puzzle &Puzzle
@@ -191,7 +191,7 @@ pub fn (mut p Puzzle) set_viewport(viewport shy.Rect) {
 	p.y = p.center().y
 }
 
-[params]
+@[params]
 struct ScrambleOptions {
 	do_not_scramble_laid bool
 }

@@ -7,7 +7,7 @@ import shy.utils
 import shy.lib as shy
 import shy.vec { Vec2 }
 
-[heap]
+@[heap]
 struct DimensionSelector {
 	shy.Rect
 mut:

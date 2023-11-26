@@ -5,7 +5,7 @@ module main
 
 import os
 
-[unsafe]
+@[unsafe]
 fn commit_hash() string {
 	mut hash := ''
 	git_exe := os.find_abs_path_of_executable('git') or { '' }

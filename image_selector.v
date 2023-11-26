@@ -13,7 +13,7 @@ struct ImageSelectorEntry {
 	source    shy.AssetSource
 }
 
-[heap]
+@[heap]
 struct ImageSelector {
 	shy.Rect
 mut:

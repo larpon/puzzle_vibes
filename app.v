@@ -34,7 +34,7 @@ fn game_mode_from_string(s string) GameMode {
 	}
 }
 
-[heap]
+@[heap]
 pub struct App {
 	embed.ExampleApp
 mut:
@@ -103,7 +103,7 @@ pub fn (mut a App) update_canvas() {
 	*/
 }
 
-[markused]
+@[markused]
 pub fn (mut a App) init() ! {
 	a.ExampleApp.init()!
 	a.update_canvas()
@@ -281,7 +281,7 @@ pub fn (mut a App) init() ! {
 				mut events := a.shy.events()
 				events.send(shy.QuitEvent{
 					timestamp: a.shy.ticks()
-					window: a.window
+					window_id: a.window.id
 					request: true
 				}) or {}
 			} else {
@@ -797,7 +797,7 @@ pub fn (mut a App) on_resize() {
 	a.back_button.on_resize()
 }
 
-[markused]
+@[markused]
 pub fn (mut a App) variable_update(dt f64) {
 	a.ExampleApp.variable_update(dt)
 
@@ -819,7 +819,7 @@ pub fn (mut a App) variable_update(dt f64) {
 	}
 }
 
-[markused]
+@[markused]
 pub fn (mut a App) frame(dt f64) {
 	// a.draw.push_matrix()
 	// a.draw.scale(0.5,0.5,1)
@@ -954,7 +954,7 @@ pub fn (mut a App) remove_user_image(path string) {
 	a.play_sfx_with_random_pitch_in_range('Disagree', 0.8, 1.2)
 }
 
-[markused]
+@[markused]
 pub fn (mut a App) event(e shy.Event) {
 	a.ExampleApp.event(e)
 

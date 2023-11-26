@@ -6,7 +6,7 @@ module main
 // import shy.mth
 import shy.lib as shy
 
-[heap]
+@[heap]
 struct Button {
 	shy.Rect
 mut:
@@ -77,7 +77,7 @@ fn (b Button) window_rect() shy.Rect {
 }
 
 // MenuButton
-[heap]
+@[heap]
 struct MenuButton {
 	Button
 }
@@ -125,7 +125,7 @@ fn (mb MenuButton) draw() {
 }
 
 // BackButton
-[heap]
+@[heap]
 struct BackButton {
 	Button
 }
@@ -176,7 +176,7 @@ fn (mut bb BackButton) on_resize() {
 }
 
 // OptionsButton
-[heap]
+@[heap]
 struct OptionsButton {
 	Button
 }
