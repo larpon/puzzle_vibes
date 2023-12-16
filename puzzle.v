@@ -339,7 +339,7 @@ fn (mut p Puzzle) draw() {
 
 pub fn (p &Piece) viewport_rect() shy.Rect {
 	area := p.viewport_rect_raw()
-	return area.displaced_from(.center)
+	return area.displaced_from(shy.Anchor.center)
 }
 
 pub fn (p &Piece) viewport_rect_raw() shy.Rect {
@@ -359,7 +359,7 @@ pub fn (p &Piece) viewport_rect_raw() shy.Rect {
 
 pub fn (p &Piece) solved_viewport_rect() shy.Rect {
 	area := p.solved_viewport_rect_raw()
-	return area.displaced_from(.center)
+	return area.displaced_from(shy.Anchor.center)
 }
 
 pub fn (p &Piece) solved_viewport_rect_raw() shy.Rect {
@@ -473,7 +473,7 @@ pub fn (p &Piece) draw() {
 			Rect: p.viewport_rect_raw() // Rect: p.viewport_rect()
 			offset: shy.vec2[f32](shadow_offset, shadow_offset)
 			color: shadow_color
-			origin: .center
+			origin: shy.Anchor.center
 			fills: .body
 			rotation: p.rotation * shy.deg2rad
 		)
@@ -485,7 +485,7 @@ pub fn (p &Piece) draw() {
 			Rect: p.viewport_rect_raw()
 			offset: shy.vec2[f32](shadow_offset, shadow_offset)
 			fills: .stroke
-			origin: .center
+			origin: shy.Anchor.center
 			scale: grab_scale
 			stroke: shy.Stroke{
 				color: shadow_color
@@ -541,7 +541,7 @@ pub fn (p &Piece) draw() {
 		a.quick.rect(
 			Rect: p.viewport_rect_raw()
 			fills: .stroke
-			origin: .center
+			origin: shy.Anchor.center
 			scale: grab_scale
 			// offset: offset
 			stroke: shy.Stroke{

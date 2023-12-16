@@ -97,7 +97,7 @@ fn (ims ImageSelector) draw() {
 	// mut border_color := shy.rgba(255,255,255,57)
 	a.quick.rect(
 		Rect: area_center
-		origin: .center
+		origin: shy.Anchor.center
 		color: bgcolor
 		fills: .body
 		/*
@@ -140,7 +140,7 @@ fn (ims ImageSelector) draw() {
 				y: int(close_center_y)
 				radius: int(radius)
 				color: colors.red
-				// origin: .center
+				// origin: shy.Anchor.center
 				// fills: .body
 			)
 			a.quick.rect(
@@ -149,7 +149,7 @@ fn (ims ImageSelector) draw() {
 				width: int(radius)
 				height: int(radius * 0.2)
 				color: colors.white
-				origin: .center
+				origin: shy.Anchor.center
 				rotation: 45 * shy.deg2rad
 				fills: .body
 			)
@@ -159,7 +159,7 @@ fn (ims ImageSelector) draw() {
 				width: int(radius)
 				height: int(radius * 0.2)
 				color: colors.white
-				origin: .center
+				origin: shy.Anchor.center
 				rotation: -45 * shy.deg2rad
 				fills: .body
 			)

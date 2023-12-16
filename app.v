@@ -375,7 +375,7 @@ pub fn (mut a App) init() ! {
 							y: close_center_y
 							width: radius
 							height: radius
-						}.displaced_from(.center)
+						}.displaced_from(shy.Anchor.center)
 						if remove_area.contains(a.mouse.x, a.mouse.y) {
 							a.image_selector.remove_selected_image()
 							a.remove_user_image(image.source.str())
@@ -460,7 +460,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 		mut handled := false
 		mut bb := a.back_button
 		mut area := bb.Button.window_rect()
-		mut mouse_area := area.displaced_from(.center)
+		mut mouse_area := area.displaced_from(shy.Anchor.center)
 		if mouse_area.contains(mouse.x, mouse.y) {
 			// println(mbe.clicks)
 			bb.click_started = true
@@ -472,7 +472,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 		if a.mode == .menu {
 			mut mb := a.start_button
 			area = mb.Button.window_rect()
-			mouse_area = area.displaced_from(.center)
+			mouse_area = area.displaced_from(shy.Anchor.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
 				mb.click_started = true
@@ -483,7 +483,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 			mut ob := a.options_button
 			area = ob.Button.window_rect()
-			mouse_area = area.displaced_from(.center)
+			mouse_area = area.displaced_from(shy.Anchor.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
 				ob.click_started = true
@@ -494,7 +494,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 			mut ims := a.image_selector
 			area = ims.window_rect()
-			mouse_area = area.displaced_from(.center)
+			mouse_area = area.displaced_from(shy.Anchor.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				// println(imse.clicks)
 				ims.click_started = true
@@ -507,7 +507,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 		if a.mode == .options {
 			mut dims := a.dim_selector
 			area = dims.window_rect()
-			mouse_area = area.displaced_from(.center)
+			mouse_area = area.displaced_from(shy.Anchor.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				// println(imse.clicks)
 				dims.click_started = true
@@ -526,7 +526,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 		mut handled := false
 		mut bb := a.back_button
 		mut area := bb.Button.window_rect()
-		mut mouse_area := area.displaced_from(.center)
+		mut mouse_area := area.displaced_from(shy.Anchor.center)
 		if mouse_area.contains(mouse.x, mouse.y) {
 			bb.is_hovered = true
 			if bb.on_hovered != unsafe { nil } {
@@ -545,7 +545,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 		if a.mode == .menu {
 			mut mb := a.start_button
 			area = mb.Button.window_rect()
-			mouse_area = area.displaced_from(.center)
+			mouse_area = area.displaced_from(shy.Anchor.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				mb.is_hovered = true
 				if mb.on_hovered != unsafe { nil } {
@@ -560,7 +560,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 			mut ob := a.options_button
 			area = ob.Button.window_rect()
-			mouse_area = area.displaced_from(.center)
+			mouse_area = area.displaced_from(shy.Anchor.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				ob.is_hovered = true
 				if ob.on_hovered != unsafe { nil } {
@@ -575,7 +575,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 
 			mut ims := a.image_selector
 			area = ims.window_rect()
-			mouse_area = area.displaced_from(.center)
+			mouse_area = area.displaced_from(shy.Anchor.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				ims.is_hovered = true
 				if ims.on_hovered != unsafe { nil } {
@@ -592,7 +592,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 		if a.mode == .options {
 			mut dims := a.dim_selector
 			area = dims.window_rect()
-			mouse_area = area.displaced_from(.center)
+			mouse_area = area.displaced_from(shy.Anchor.center)
 			if mouse_area.contains(mouse.x, mouse.y) {
 				dims.is_hovered = true
 				if dims.on_hovered != unsafe { nil } {
@@ -619,7 +619,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 		mut was_started := bb.click_started
 		bb.click_started = false
 		mut area := bb.Button.window_rect()
-		mut mouse_area := area.displaced_from(.center)
+		mut mouse_area := area.displaced_from(shy.Anchor.center)
 		if was_started && mouse_area.contains(mouse.x, mouse.y) {
 			// println(mbe.clicks)
 			if bb.on_clicked != unsafe { nil } {
@@ -644,7 +644,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			was_started = mb.click_started
 			mb.click_started = false
 			area = mb.Button.window_rect()
-			mb_mouse_area = area.displaced_from(.center)
+			mb_mouse_area = area.displaced_from(shy.Anchor.center)
 			if was_started && mb_mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
 				if mb.on_clicked != unsafe { nil } {
@@ -656,7 +656,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			was_started = ob.click_started
 			ob.click_started = false
 			area = ob.Button.window_rect()
-			ob_mouse_area = area.displaced_from(.center)
+			ob_mouse_area = area.displaced_from(shy.Anchor.center)
 			if was_started && ob_mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
 				if ob.on_clicked != unsafe { nil } {
@@ -668,7 +668,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			was_started = ims.click_started
 			ims.click_started = false
 			area = ims.window_rect()
-			ims_mouse_area = area.displaced_from(.center)
+			ims_mouse_area = area.displaced_from(shy.Anchor.center)
 			if was_started && ims_mouse_area.contains(mouse.x, mouse.y) {
 				// println(imse.clicks)
 				if ims.on_clicked != unsafe { nil } {
@@ -681,7 +681,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			was_started = dims.click_started
 			dims.click_started = false
 			area = dims.window_rect()
-			dims_mouse_area = area.displaced_from(.center)
+			dims_mouse_area = area.displaced_from(shy.Anchor.center)
 			if was_started && dims_mouse_area.contains(mouse.x, mouse.y) {
 				// println(imse.clicks)
 				if dims.on_clicked != unsafe { nil } {
@@ -1072,7 +1072,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 					rotation: piece.rotation * shy.deg2rad // piece rotation is stored as degrees
 					color: color
 					fills: .stroke
-					origin: .center
+					origin: shy.Anchor.center
 					stroke: shy.Stroke{
 						color: color
 					}

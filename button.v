@@ -38,7 +38,7 @@ fn (b Button) draw() {
 
 	a.quick.rect(
 		Rect: area
-		origin: .center
+		origin: shy.Anchor.center
 		color: bgcolor
 		stroke: shy.Stroke{
 			width: 3
@@ -100,7 +100,7 @@ fn (mb MenuButton) draw() {
 
 	a.quick.rect(
 		Rect: area
-		origin: .center
+		origin: shy.Anchor.center
 		color: bgcolor
 		stroke: shy.Stroke{
 			width: 3

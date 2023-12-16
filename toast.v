@@ -86,7 +86,7 @@ pub fn (a &App) draw_toasts(dt f64) {
 				y: y
 				width: bounds.width + 20 * size_factor
 				height: bounds.height + 20 * size_factor
-				origin: .center
+				origin: shy.Anchor.center
 			)
 			et.draw()
 		} else if !isnil(toast.fader) && toast.fader.running {
@@ -107,7 +107,7 @@ pub fn (a &App) draw_toasts(dt f64) {
 				y: y
 				width: bounds.width + 20 * size_factor
 				height: bounds.height + 20 * size_factor
-				origin: .center
+				origin: shy.Anchor.center
 				stroke: shy.Stroke{
 					color: color
 				}

@@ -86,7 +86,7 @@ fn (dims &DimensionSelector) draw() {
 	// mut border_color := shy.rgba(255,255,255,57)
 	a.quick.rect(
 		Rect: area_center
-		origin: .center
+		origin: shy.Anchor.center
 		color: bgcolor
 		fills: .body
 		/*
@@ -128,7 +128,7 @@ fn (dims &DimensionSelector) draw() {
 			}
 			a.quick.rect(
 				Rect: rect
-				origin: .center
+				origin: shy.Anchor.center
 				color: color
 				// color: shy.rgba(127,127,127,127) //bgcolor
 				fills: .body
