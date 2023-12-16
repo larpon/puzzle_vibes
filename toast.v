@@ -76,7 +76,7 @@ pub fn (a &App) draw_toasts(dt f64) {
 				text: toast.text
 				x: x
 				y: y
-				origin: .center
+				origin: shy.Anchor.center
 				size: 50 * size_factor
 			)
 			bounds := et.bounds()
@@ -97,7 +97,7 @@ pub fn (a &App) draw_toasts(dt f64) {
 				color: color
 				x: x
 				y: y
-				origin: .center
+				origin: shy.Anchor.center
 				size: 50 * size_factor
 			)
 			bounds := et.bounds()

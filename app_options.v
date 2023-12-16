@@ -27,7 +27,7 @@ pub fn (mut a App) render_options_frame(dt f64) {
 		x: shy.half * draw_canvas.width
 		y: draw_canvas.height * 0.1
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		size: 30 * size_factor
 		text: 'Drag and drop image files onto the Window
 to use as custom puzzle images.

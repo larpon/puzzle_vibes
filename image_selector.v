@@ -124,7 +124,7 @@ fn (ims ImageSelector) draw() {
 			width: area_center.width
 			height: area_center.height
 			source: image.source
-			origin: .center
+			origin: shy.Anchor.center
 			scale: scale
 			fill_mode: .aspect_crop //.aspect_fit
 		)
@@ -169,7 +169,7 @@ fn (ims ImageSelector) draw() {
 			x: area_center.x
 			y: area_center.y
 			align: .center
-			origin: .center
+			origin: shy.Anchor.center
 			size: 20 * font_size_factor
 			text: 'No images found'
 		)
@@ -193,7 +193,7 @@ fn (ims ImageSelector) draw() {
 		x: area_center.x
 		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		size: 50 * font_size_factor
 		color: shy.colors.shy.black
 		blur: 5
@@ -205,7 +205,7 @@ fn (ims ImageSelector) draw() {
 		x: area_center.x
 		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		size: 50 * font_size_factor
 		text: text
 	)
@@ -224,7 +224,7 @@ fn (ims ImageSelector) draw() {
 		Visual guide
 		a.quick.rect(
 			Rect: l_rect
-			origin: .center
+			origin: shy.Anchor.center
 			color: base_color
 			// fills: .body
 // 			stroke: shy.Stroke{
@@ -240,7 +240,7 @@ fn (ims ImageSelector) draw() {
 			// rotation: 90
 			fills: .body
 			color: shy.colors.shy.white
-			origin: .center
+			origin: shy.Anchor.center
 			scale: 0.7
 		)
 
@@ -255,7 +255,7 @@ fn (ims ImageSelector) draw() {
 		Visual guide
 		a.quick.rect(
 			Rect: r_rect
-			origin: .center
+			origin: shy.Anchor.center
 			color: base_color
 			// fills: .body
 // 			stroke: shy.Stroke{
@@ -271,7 +271,7 @@ fn (ims ImageSelector) draw() {
 			// rotation: rotation
 			fills: .body
 			color: shy.colors.shy.white
-			origin: .center
+			origin: shy.Anchor.center
 			scale: 0.7
 		)
 	}

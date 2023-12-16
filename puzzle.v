@@ -504,7 +504,7 @@ pub fn (p &Piece) draw() {
 		x: pos.x
 		y: pos.y
 		source: p.puzzle.image.source()
-		origin: .center
+		origin: shy.Anchor.center
 		scale: scale
 		offset: offset
 		region: p.region()
@@ -524,7 +524,7 @@ pub fn (p &Piece) draw() {
 		y: pos.y
 		offset: offset
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		size: font_size
 		text: '${p.xy.x:.0},${p.xy.y:.0}' + '\n${p.size.width:.0},${p.size.height:.0}' +
 			'\n${p.pos.x:.0},${p.pos.y:.0}'

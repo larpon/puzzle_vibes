@@ -147,7 +147,7 @@ fn (dims &DimensionSelector) draw() {
 		x: area_center.x
 		y: area_center.y
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		size: 20 * font_size_factor
 		text: 'No images found'
 	)*/
@@ -165,7 +165,7 @@ fn (dims &DimensionSelector) draw() {
 		x: area_center.x
 		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		size: 50 * font_size_factor
 		color: shy.colors.shy.black
 		blur: 5
@@ -177,7 +177,7 @@ fn (dims &DimensionSelector) draw() {
 		x: area_center.x
 		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		size: 50 * font_size_factor
 		text: text
 	)

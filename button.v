@@ -62,7 +62,7 @@ fn (b Button) draw() {
 		x: area.x
 		y: area.y
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		size: 50 * font_size_factor
 		text: text
 	)
@@ -118,7 +118,7 @@ fn (mb MenuButton) draw() {
 		x: area.x
 		y: area.y
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		size: 48 * font_size_factor
 		text: text
 	)
@@ -156,7 +156,7 @@ fn (bb BackButton) draw() {
 		x: area.x
 		y: area.y
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		color: color
 		size: 42 * font_size_factor
 		text: text
@@ -207,7 +207,7 @@ fn (ob OptionsButton) draw() {
 		x: area.x
 		y: area.y
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		color: color
 		size: 42 * font_size_factor
 		text: text

@@ -26,7 +26,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		y: shy.half * draw_canvas.height
 		width: draw_canvas.width
 		height: draw_canvas.height
-		origin: .center
+		origin: shy.Anchor.center
 		color: bgcolor
 		stroke: shy.Stroke{
 			width: 1
@@ -40,7 +40,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		x: shy.half * draw_canvas.width
 		y: shy.half * draw_canvas.height
 		source: a.asset('images/puzzle_vibes_logo.png')
-		origin: .center
+		origin: shy.Anchor.center
 		offset: shy.vec2[f32](0, -(draw_canvas.height * 0.32))
 		scale: (a.canvas().width / 1920) * 0.45
 	)
@@ -62,7 +62,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		x: sb_rect.x
 		y: sb_rect.y + shy.half * sb_rect.height + 20 * size_factor
 		align: .center
-		origin: .center
+		origin: shy.Anchor.center
 		size: 20 * size_factor
 		text: '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
 	)
@@ -72,7 +72,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		x: 10 * size_factor
 		y: draw_canvas.height - 10 * size_factor
 		align: .center
-		origin: .bottom_left
+		origin: shy.Anchor.bottom_left
 		size: 15 * size_factor
 		text: '${version_info}'
 	)

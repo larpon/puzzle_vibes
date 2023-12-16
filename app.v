@@ -1101,7 +1101,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 			x: a.canvas().width * shy.half
 			y: a.canvas().height * shy.half
 			align: .center
-			origin: .center
+			origin: shy.Anchor.center
 			size: font_size
 			text: 'EXCELLENT'
 		)
@@ -1116,7 +1116,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 				x: (a.canvas().width * shy.half)
 				y: (a.canvas().height * shy.half) + (shy.half * et_bounds.height) //* 1.1
 				align: .center
-				origin: .top_center
+				origin: shy.Anchor.top_center
 				size: f32(60) * font_size_factor
 				text: 'Puzzle solved in ${play_time}'
 				offset: shy.vec2[f32](0, 10 * font_size_factor)
