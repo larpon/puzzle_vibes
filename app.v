@@ -64,6 +64,7 @@ mut:
 	version_full string = version_full()
 }
 
+@[markused]
 pub fn (mut a App) shutdown() ! {
 	a.save_settings() or { eprintln('Saving settings failed: ${err}') }
 	a.ExampleApp.shutdown()!
