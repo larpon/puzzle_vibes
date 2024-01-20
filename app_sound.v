@@ -53,7 +53,7 @@ pub fn (a &App) play_cheer() {
 
 pub fn (mut a App) play_music(key string) {
 	a.cur_music = key
-	a.music[a.cur_music].sound.play()
+	unsafe { a.music[a.cur_music].sound.play() }
 	// entry := a.music[a.cur_music]
 	// 	a.show_toast(Toast{
 	// 		text: 'Now playing "${entry.info.name}"'
