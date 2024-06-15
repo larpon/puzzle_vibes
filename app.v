@@ -225,7 +225,7 @@ pub fn (mut a App) init() ! {
 	// 	}
 	// 	a.music['River Meditation'].play()
 
-	img := a.assets.get[shy.Image](a.asset(default_image))!
+	img, _ := a.assets.get[shy.Image](a.asset(default_image))
 
 	for e in sfx_db {
 		sfx := a.asset(os.join_path('sfx', e.file))
@@ -868,7 +868,7 @@ pub fn (mut a App) start_game() ! {
 	imse := a.image_selector.get_selected_image() or {
 		return error('Failed getting selected image')
 	}
-	img := a.assets.get[shy.Image](imse.source)!
+	img, _ := a.assets.get[shy.Image](imse.source)
 
 	a.puzzle.on_piece_init = fn (mut piece Piece) {
 		// mut p := unsafe { piece }
