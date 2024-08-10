@@ -151,6 +151,8 @@ pub fn (mut a App) init() ! {
 	a.quick.load(shy.ImageOptions{
 		resize: a.canvas().factor
 		source: a.asset(default_image)
+		min_filter: .nearest
+		mag_filter: .nearest
 	})!
 
 	mut puzzle_images := []ImageSelectorEntry{}
