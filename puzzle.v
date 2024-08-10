@@ -21,7 +21,7 @@ mut:
 	piece_size    shy.Size // smallest, "most used" piece_size
 	pieces        []&Piece
 	pieces_map    map[string]&Piece // yuk
-	grabbed       u32 // id of the piece currently grabbed
+	grabbed       u32               // id of the piece currently grabbed
 	scale         f32
 	margin        f32 = 0.75 // 0.1 - 0.9; percentage of minimum available screen space to fill
 	solved        bool
@@ -50,7 +50,7 @@ mut:
 	hovered     bool
 	grabbed     bool
 	laid        bool // Indicates if the piece is laid in the puzzle area. aka NOT outside the board/puzzle solved area.
-	rotation    f32 = 15 // only used as visual gimmick
+	rotation    f32                = 15 // only used as visual gimmick
 	rotation_am &shy.Animator[f32] = shy.null
 }
 

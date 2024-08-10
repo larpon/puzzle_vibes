@@ -12,7 +12,7 @@ pub struct Toast {
 	text     string
 	duration f32 // 1.5 = 1.5 seconds
 mut:
-	timer &shy.Timer = shy.null
+	timer &shy.Timer         = shy.null
 	fader &shy.Animator[f32] = shy.null
 }
 
