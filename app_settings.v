@@ -25,7 +25,7 @@ fn (mut us UserSettings) defaults() {
 }
 
 fn (a &App) ensure_settings_path() !string {
-	save_path := os.join_path(os.config_dir()!, 'Black Grain', 'blackgrain.dk', 'puzzle_vibes')
+	save_path := os.join_path(a.shy.config_dir()!, 'Black Grain', 'blackgrain.dk', 'puzzle_vibes')
 	if !os.exists(save_path) {
 		os.mkdir_all(save_path) or {
 			return error('could not make directory "${save_path}": ${err}')
