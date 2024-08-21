@@ -76,9 +76,9 @@ fn parse_image_db(raw string) []ImageInfo {
 		}
 		// dump(fields)
 		db << ImageInfo{
-			name: fields[0]
-			file: fields[1]
-			url: fields[2]
+			name:    fields[0]
+			file:    fields[1]
+			url:     fields[2]
 			comment: fields[2]
 		}
 	}
@@ -94,9 +94,9 @@ fn parse_music_db(raw string) []MusicInfo {
 			continue
 		}
 		db << MusicInfo{
-			name: fields[0]
-			file: fields[1]
-			url: fields[2]
+			name:    fields[0]
+			file:    fields[1]
+			url:     fields[2]
 			comment: fields[2]
 		}
 	}
@@ -112,9 +112,9 @@ fn parse_sfx_db(raw string) []SFXInfo {
 			continue
 		}
 		db << SFXInfo{
-			name: fields[0]
-			file: fields[1]
-			url: fields[2]
+			name:    fields[0]
+			file:    fields[1]
+			url:     fields[2]
 			comment: fields[2]
 		}
 	}

@@ -56,7 +56,7 @@ mut:
 
 pub fn new_puzzle(pc PuzzleConfig) !&Puzzle {
 	mut puzzle := &Puzzle{
-		app: pc.app
+		app:   pc.app
 		image: pc.image
 	}
 	puzzle.init(pc)!
@@ -76,7 +76,7 @@ pub fn (mut p Puzzle) init(pc PuzzleConfig) ! {
 	dim := pc.dimensions
 
 	piece_size := shy.Size{
-		width: u32(img.width / dim.width)
+		width:  u32(img.width / dim.width)
 		height: u32(img.height / dim.height)
 	}
 
@@ -127,13 +127,13 @@ pub fn (mut p Puzzle) init(pc PuzzleConfig) ! {
 			pos_solved := shy.vec2[f32](x * (piece_size.width * 0.5), y * (piece_size.height * 0.5))
 			pos := pos_solved
 			mut piece := &Piece{
-				app: a
-				puzzle: p
-				id: pid
-				xy: shy.vec2[u32](x, y)
-				pos: pos
+				app:        a
+				puzzle:     p
+				id:         pid
+				xy:         shy.vec2[u32](x, y)
+				pos:        pos
 				pos_solved: pos_solved
-				size: size
+				size:       size
 			}
 			if on_piece_init := p.on_piece_init {
 				on_piece_init(mut piece)
@@ -204,7 +204,7 @@ pub fn (mut p Puzzle) scramble(opt ScrambleOptions) ! {
 		}
 		vp_rect := piece.viewport_rect()
 		piece_size := shy.Size{
-			width: vp_rect.width
+			width:  vp_rect.width
 			height: vp_rect.height
 		}
 		mut x_range_min := piece_size.width * 0.5
@@ -249,9 +249,9 @@ pub fn (p &Puzzle) center() Vec2[f32] {
 pub fn (p &Puzzle) get_solved_piece(viewport_pos Vec2[f32]) ?&Piece {
 	vp := viewport_pos
 	board := shy.Rect{
-		x: p.x
-		y: p.y
-		width: p.width * p.scale
+		x:      p.x
+		y:      p.y
+		width:  p.width * p.scale
 		height: p.height * p.scale
 	}
 	if board.contains(vp.x, vp.y) {
@@ -326,12 +326,12 @@ fn (mut p Puzzle) draw() {
 		if rect := p.get_quadrant(m) {
 			// Highlight quadrant
 			a.quick.rect(
-				x: rect.x
-				y: rect.y
-				width: (rect.width)
+				x:      rect.x
+				y:      rect.y
+				width:  (rect.width)
 				height: (rect.height)
-				color: shy.rgba(155, 155, 155, 25)
-				fills: .body
+				color:  shy.rgba(155, 155, 155, 25)
+				fills:  .body
 			)
 		}
 	}
@@ -348,9 +348,9 @@ pub fn (p &Piece) viewport_rect_raw() shy.Rect {
 	pos := p.local_to_viewport(p.pos)
 
 	area := shy.Rect{
-		x: pos.x + offset.x
-		y: pos.y + offset.y
-		width: p.size.width * scale
+		x:      pos.x + offset.x
+		y:      pos.y + offset.y
+		width:  p.size.width * scale
 		height: p.size.height * scale
 	}
 
@@ -368,9 +368,9 @@ pub fn (p &Piece) solved_viewport_rect_raw() shy.Rect {
 	pos := p.local_to_viewport(p.pos_solved)
 
 	area := shy.Rect{
-		x: pos.x + offset.x
-		y: pos.y + offset.y
-		width: p.size.width * scale
+		x:      pos.x + offset.x
+		y:      pos.y + offset.y
+		width:  p.size.width * scale
 		height: p.size.height * scale
 	}
 
@@ -389,9 +389,9 @@ fn (mut p Piece) reset() {
 // The region of the puzzle image this piece represents/depicts
 fn (p &Piece) region() shy.Rect {
 	return shy.Rect{
-		x: p.xy.x * p.puzzle.piece_size.width
-		y: p.xy.y * p.puzzle.piece_size.height
-		width: p.size.width
+		x:      p.xy.x * p.puzzle.piece_size.width
+		y:      p.xy.y * p.puzzle.piece_size.height
+		width:  p.size.width
 		height: p.size.height
 	}
 }
@@ -470,11 +470,11 @@ pub fn (p &Piece) draw() {
 		shadow_offset := utils.remap(f32(0.025), 0, 1, 0, pz.image.width) * scale
 
 		a.quick.rect(
-			Rect: p.viewport_rect_raw() // Rect: p.viewport_rect()
-			offset: shy.vec2[f32](shadow_offset, shadow_offset)
-			color: shadow_color
-			origin: shy.Anchor.center
-			fills: .body
+			Rect:     p.viewport_rect_raw() // Rect: p.viewport_rect()
+			offset:   shy.vec2[f32](shadow_offset, shadow_offset)
+			color:    shadow_color
+			origin:   shy.Anchor.center
+			fills:    .body
 			rotation: p.rotation * shy.deg2rad
 		)
 	} else if !p.grabbed && !p.laid {
@@ -482,11 +482,11 @@ pub fn (p &Piece) draw() {
 		shadow_color := shy.rgba(0, 0, 0, 70)
 		shadow_offset := f32(0)
 		a.quick.rect(
-			Rect: p.viewport_rect_raw()
+			Rect:   p.viewport_rect_raw()
 			offset: shy.vec2[f32](shadow_offset, shadow_offset)
-			fills: .stroke
+			fills:  .stroke
 			origin: shy.Anchor.center
-			scale: grab_scale
+			scale:  grab_scale
 			stroke: shy.Stroke{
 				color: shadow_color
 				width: 3
@@ -501,13 +501,13 @@ pub fn (p &Piece) draw() {
 	//}
 
 	a.quick.image(
-		x: pos.x
-		y: pos.y
-		source: p.puzzle.image.source()
-		origin: shy.Anchor.center
-		scale: scale
-		offset: offset
-		region: p.region()
+		x:        pos.x
+		y:        pos.y
+		source:   p.puzzle.image.source()
+		origin:   shy.Anchor.center
+		scale:    scale
+		offset:   offset
+		region:   p.region()
 		rotation: p.rotation * shy.deg2rad
 	)
 
@@ -539,10 +539,10 @@ pub fn (p &Piece) draw() {
 		mut color := shy.colors.shy.white
 		color.a = 127
 		a.quick.rect(
-			Rect: p.viewport_rect_raw()
-			fills: .stroke
+			Rect:   p.viewport_rect_raw()
+			fills:  .stroke
 			origin: shy.Anchor.center
-			scale: grab_scale
+			scale:  grab_scale
 			// offset: offset
 			stroke: shy.Stroke{
 				color: color

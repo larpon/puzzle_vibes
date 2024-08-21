@@ -37,9 +37,9 @@ fn (b Button) draw() {
 	}
 
 	a.quick.rect(
-		Rect: area
+		Rect:   area
 		origin: shy.Anchor.center
-		color: bgcolor
+		color:  bgcolor
 		stroke: shy.Stroke{
 			width: 3
 		}
@@ -59,12 +59,12 @@ fn (b Button) draw() {
 	font_size_factor := 1 / design_factor * draw_scale * b.scale
 
 	a.quick.text(
-		x: area.x
-		y: area.y
-		align: .center
+		x:      area.x
+		y:      area.y
+		align:  .center
 		origin: shy.Anchor.center
-		size: 50 * font_size_factor
-		text: text
+		size:   50 * font_size_factor
+		text:   text
 	)
 }
 
@@ -99,9 +99,9 @@ fn (mb MenuButton) draw() {
 	}
 
 	a.quick.rect(
-		Rect: area
+		Rect:   area
 		origin: shy.Anchor.center
-		color: bgcolor
+		color:  bgcolor
 		stroke: shy.Stroke{
 			width: 3
 		}
@@ -115,12 +115,12 @@ fn (mb MenuButton) draw() {
 	font_size_factor := 1 / design_factor * draw_scale * mb.scale
 
 	a.quick.text(
-		x: area.x
-		y: area.y
-		align: .center
+		x:      area.x
+		y:      area.y
+		align:  .center
 		origin: shy.Anchor.center
-		size: 48 * font_size_factor
-		text: text
+		size:   48 * font_size_factor
+		text:   text
 	)
 }
 
@@ -153,22 +153,23 @@ fn (bb BackButton) draw() {
 	font_size_factor := 1 / design_factor * draw_scale * bb.scale
 
 	a.quick.text(
-		x: area.x
-		y: area.y
-		align: .center
+		x:      area.x
+		y:      area.y
+		align:  .center
 		origin: shy.Anchor.center
-		color: color
-		size: 42 * font_size_factor
-		text: text
+		color:  color
+		size:   42 * font_size_factor
+		text:   text
 	)
 }
 
 fn (mut bb BackButton) on_resize() {
 	draw_canvas := bb.app.canvas()
 	area := shy.Rect{
-		x: draw_canvas.width - 10 - (0.07 * draw_canvas.width) + ((0.07 * draw_canvas.width) * 0.5)
-		y: 10 + ((0.08 * draw_canvas.height) * 0.5)
-		width: 0.07 * draw_canvas.width
+		x:      draw_canvas.width - 10 - (0.07 * draw_canvas.width) +
+			((0.07 * draw_canvas.width) * 0.5)
+		y:      10 + ((0.08 * draw_canvas.height) * 0.5)
+		width:  0.07 * draw_canvas.width
 		height: 0.08 * draw_canvas.height
 	}
 	// println('Area: ${area}')
@@ -204,22 +205,22 @@ fn (ob OptionsButton) draw() {
 	font_size_factor := 1 / design_factor * draw_scale * ob.scale
 
 	a.quick.text(
-		x: area.x
-		y: area.y
-		align: .center
+		x:      area.x
+		y:      area.y
+		align:  .center
 		origin: shy.Anchor.center
-		color: color
-		size: 42 * font_size_factor
-		text: text
+		color:  color
+		size:   42 * font_size_factor
+		text:   text
 	)
 }
 
 fn (mut ob OptionsButton) on_resize() {
 	draw_canvas := ob.app.canvas()
 	area := shy.Rect{
-		x: 10 + (0.04 * draw_canvas.width) + ((0.04 * draw_canvas.width) * 0.5)
-		y: 10 + ((0.08 * draw_canvas.height) * 0.5)
-		width: 0.11 * draw_canvas.width
+		x:      10 + (0.04 * draw_canvas.width) + ((0.04 * draw_canvas.width) * 0.5)
+		y:      10 + ((0.08 * draw_canvas.height) * 0.5)
+		width:  0.11 * draw_canvas.width
 		height: 0.08 * draw_canvas.height
 	}
 	// println('Area: ${area}')

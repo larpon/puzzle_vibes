@@ -10,9 +10,9 @@ pub fn (mut a App) render_options_frame(dt f64) {
 	draw_canvas := a.canvas()
 
 	a.quick.image(
-		source: a.asset('images/seamless_wooden_texture.jpg')
-		width: draw_canvas.width
-		height: draw_canvas.height
+		source:    a.asset('images/seamless_wooden_texture.jpg')
+		width:     draw_canvas.width
+		height:    draw_canvas.height
 		fill_mode: .tile
 	)
 
@@ -24,12 +24,12 @@ pub fn (mut a App) render_options_frame(dt f64) {
 	}
 	size_factor := 1 / design_factor * draw_scale
 	a.quick.text(
-		x: shy.half * draw_canvas.width
-		y: draw_canvas.height * 0.1
-		align: .center
+		x:      shy.half * draw_canvas.width
+		y:      draw_canvas.height * 0.1
+		align:  .center
 		origin: shy.Anchor.center
-		size: 30 * size_factor
-		text: 'Drag and drop image files onto the Window
+		size:   30 * size_factor
+		text:   'Drag and drop image files onto the Window
 to use as custom puzzle images.
 Use the grid below to control the puzzle dimensions'
 	)

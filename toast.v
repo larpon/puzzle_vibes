@@ -27,9 +27,9 @@ pub fn (mut a App) show_toast(toast Toast) {
 		for mut toast in a.toasts {
 			if toast.id == tid {
 				ac := shy.AnimatorConfig{
-					running: true
+					running:  true
 					duration: 500
-					ease: ease.Ease{
+					ease:     ease.Ease{
 						kind: .sine
 						mode: .out
 					}
@@ -53,7 +53,7 @@ pub fn (mut a App) show_toast(toast Toast) {
 
 	t := Toast{
 		...toast
-		id: tid
+		id:    tid
 		timer: timer
 	}
 	a.toasts << t
@@ -73,18 +73,18 @@ pub fn (a &App) draw_toasts(dt f64) {
 		size_factor := 1 / design_factor * draw_scale
 		if !isnil(toast.timer) && toast.timer.running {
 			et := a.easy.text(
-				text: toast.text
-				x: x
-				y: y
+				text:   toast.text
+				x:      x
+				y:      y
 				origin: shy.Anchor.center
-				size: 50 * size_factor
+				size:   50 * size_factor
 			)
 			bounds := et.bounds()
 			a.quick.rect(
-				color: frame_bg_color
-				x: x
-				y: y
-				width: bounds.width + 20 * size_factor
+				color:  frame_bg_color
+				x:      x
+				y:      y
+				width:  bounds.width + 20 * size_factor
 				height: bounds.height + 20 * size_factor
 				origin: shy.Anchor.center
 			)
@@ -93,19 +93,19 @@ pub fn (a &App) draw_toasts(dt f64) {
 			color.a = utils.remap_f32_to_u8(toast.fader.value(), 0, 1, 0, 255)
 			frame_bg_color.a = utils.remap_f32_to_u8(toast.fader.value(), 0, 1, 0, 255)
 			et := a.easy.text(
-				text: toast.text
-				color: color
-				x: x
-				y: y
+				text:   toast.text
+				color:  color
+				x:      x
+				y:      y
 				origin: shy.Anchor.center
-				size: 50 * size_factor
+				size:   50 * size_factor
 			)
 			bounds := et.bounds()
 			a.quick.rect(
-				color: frame_bg_color
-				x: x
-				y: y
-				width: bounds.width + 20 * size_factor
+				color:  frame_bg_color
+				x:      x
+				y:      y
+				width:  bounds.width + 20 * size_factor
 				height: bounds.height + 20 * size_factor
 				origin: shy.Anchor.center
 				stroke: shy.Stroke{

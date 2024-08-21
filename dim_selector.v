@@ -34,9 +34,9 @@ fn (dims DimensionSelector) window_rect() shy.Rect {
 fn (dims &DimensionSelector) window_de_origin_rect() shy.Rect {
 	dims_rect := dims.window_rect()
 	return shy.Rect{
-		x: dims_rect.x - shy.half * dims_rect.width
-		y: dims_rect.y - shy.half * dims_rect.height
-		width: dims_rect.width
+		x:      dims_rect.x - shy.half * dims_rect.width
+		y:      dims_rect.y - shy.half * dims_rect.height
+		width:  dims_rect.width
 		height: dims_rect.height
 	}
 }
@@ -85,10 +85,10 @@ fn (dims &DimensionSelector) draw() {
 
 	// mut border_color := shy.rgba(255,255,255,57)
 	a.quick.rect(
-		Rect: area_center
+		Rect:   area_center
 		origin: shy.Anchor.center
-		color: bgcolor
-		fills: .body
+		color:  bgcolor
+		fills:  .body
 		/*
 		stroke: shy.Stroke{
 			width: 3
@@ -111,9 +111,9 @@ fn (dims &DimensionSelector) draw() {
 		for iy in 0 .. int(max.y) {
 			off := top_left + shy.vec2[f32](box_width * 0.5, box_height * 0.5)
 			rect := shy.Rect{
-				x: off.x + (ix * box_width)
-				y: off.y + (iy * box_height)
-				width: box_width - 1
+				x:      off.x + (ix * box_width)
+				y:      off.y + (iy * box_height)
+				width:  box_width - 1
 				height: box_height - 1
 			}
 			mut color := shy.rgba(0, 0, 0, 27)
@@ -127,9 +127,9 @@ fn (dims &DimensionSelector) draw() {
 				}
 			}
 			a.quick.rect(
-				Rect: rect
+				Rect:   rect
 				origin: shy.Anchor.center
-				color: color
+				color:  color
 				// color: shy.rgba(127,127,127,127) //bgcolor
 				fills: .body
 				/*
@@ -153,32 +153,32 @@ fn (dims &DimensionSelector) draw() {
 	)*/
 
 	a.quick.rect(
-		x: area_center.x - shy.half * area_center.width
-		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.2
-		width: area_center.width
+		x:      area_center.x - shy.half * area_center.width
+		y:      area_center.y + (shy.half * area_center.height) - area_center.height * 0.2
+		width:  area_center.width
 		height: area_center.height * 0.2
-		color: shy.rgba(0, 0, 0, 80)
-		fills: .body
+		color:  shy.rgba(0, 0, 0, 80)
+		fills:  .body
 	)
 
 	a.quick.text(
-		x: area_center.x
-		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
-		align: .center
+		x:      area_center.x
+		y:      area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
+		align:  .center
 		origin: shy.Anchor.center
-		size: 50 * font_size_factor
-		color: shy.colors.shy.black
-		blur: 5
-		scale: 1.01
-		text: text
+		size:   50 * font_size_factor
+		color:  shy.colors.shy.black
+		blur:   5
+		scale:  1.01
+		text:   text
 	)
 
 	a.quick.text(
-		x: area_center.x
-		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
-		align: .center
+		x:      area_center.x
+		y:      area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
+		align:  .center
 		origin: shy.Anchor.center
-		size: 50 * font_size_factor
-		text: text
+		size:   50 * font_size_factor
+		text:   text
 	)
 }

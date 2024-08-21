@@ -69,9 +69,9 @@ fn (mut ims ImageSelector) prev_image() {
 fn (ims &ImageSelector) window_de_origin_rect() shy.Rect {
 	ims_rect := ims.window_rect()
 	return shy.Rect{
-		x: ims_rect.x - shy.half * ims_rect.width
-		y: ims_rect.y - shy.half * ims_rect.height
-		width: ims_rect.width
+		x:      ims_rect.x - shy.half * ims_rect.width
+		y:      ims_rect.y - shy.half * ims_rect.height
+		width:  ims_rect.width
 		height: ims_rect.height
 	}
 }
@@ -96,10 +96,10 @@ fn (ims ImageSelector) draw() {
 
 	// mut border_color := shy.rgba(255,255,255,57)
 	a.quick.rect(
-		Rect: area_center
+		Rect:   area_center
 		origin: shy.Anchor.center
-		color: bgcolor
-		fills: .body
+		color:  bgcolor
+		fills:  .body
 		/*
 		stroke: shy.Stroke{
 			width: 3
@@ -119,13 +119,13 @@ fn (ims ImageSelector) draw() {
 		text = image.name
 		scale := f32(0.95)
 		a.quick.image(
-			x: area_center.x
-			y: area_center.y
-			width: area_center.width
-			height: area_center.height
-			source: image.source
-			origin: shy.Anchor.center
-			scale: scale
+			x:         area_center.x
+			y:         area_center.y
+			width:     area_center.width
+			height:    area_center.height
+			source:    image.source
+			origin:    shy.Anchor.center
+			scale:     scale
 			fill_mode: .aspect_crop //.aspect_fit
 		)
 
@@ -136,52 +136,52 @@ fn (ims ImageSelector) draw() {
 			close_center_x := (area_center.x + (shy.half * area_center.width * scale) - margin) // * scale
 			close_center_y := (area_center.y - (shy.half * area_center.height * scale) + margin) //* scale
 			a.quick.circle(
-				x: int(close_center_x)
-				y: int(close_center_y)
+				x:      int(close_center_x)
+				y:      int(close_center_y)
 				radius: int(radius)
-				color: colors.red
+				color:  colors.red
 				// origin: shy.Anchor.center
 				// fills: .body
 			)
 			a.quick.rect(
-				x: int(close_center_x)
-				y: int(close_center_y)
-				width: int(radius)
-				height: int(radius * 0.2)
-				color: colors.white
-				origin: shy.Anchor.center
+				x:        int(close_center_x)
+				y:        int(close_center_y)
+				width:    int(radius)
+				height:   int(radius * 0.2)
+				color:    colors.white
+				origin:   shy.Anchor.center
 				rotation: 45 * shy.deg2rad
-				fills: .body
+				fills:    .body
 			)
 			a.quick.rect(
-				x: int(close_center_x)
-				y: int(close_center_y)
-				width: int(radius)
-				height: int(radius * 0.2)
-				color: colors.white
-				origin: shy.Anchor.center
+				x:        int(close_center_x)
+				y:        int(close_center_y)
+				width:    int(radius)
+				height:   int(radius * 0.2)
+				color:    colors.white
+				origin:   shy.Anchor.center
 				rotation: -45 * shy.deg2rad
-				fills: .body
+				fills:    .body
 			)
 		}
 	} else {
 		a.quick.text(
-			x: area_center.x
-			y: area_center.y
-			align: .center
+			x:      area_center.x
+			y:      area_center.y
+			align:  .center
 			origin: shy.Anchor.center
-			size: 20 * font_size_factor
-			text: 'No images found'
+			size:   20 * font_size_factor
+			text:   'No images found'
 		)
 	}
 
 	a.quick.rect(
-		x: area_center.x - shy.half * area_center.width
-		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.2
-		width: area_center.width
+		x:      area_center.x - shy.half * area_center.width
+		y:      area_center.y + (shy.half * area_center.height) - area_center.height * 0.2
+		width:  area_center.width
 		height: area_center.height * 0.2
-		color: shy.rgba(0, 0, 0, 80)
-		fills: .body
+		color:  shy.rgba(0, 0, 0, 80)
+		fills:  .body
 	)
 
 	text_as_runes := text.runes()
@@ -190,24 +190,24 @@ fn (ims ImageSelector) draw() {
 	}
 
 	a.quick.text(
-		x: area_center.x
-		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
-		align: .center
+		x:      area_center.x
+		y:      area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
+		align:  .center
 		origin: shy.Anchor.center
-		size: 50 * font_size_factor
-		color: shy.colors.shy.black
-		blur: 5
-		scale: 1.01
-		text: text
+		size:   50 * font_size_factor
+		color:  shy.colors.shy.black
+		blur:   5
+		scale:  1.01
+		text:   text
 	)
 
 	a.quick.text(
-		x: area_center.x
-		y: area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
-		align: .center
+		x:      area_center.x
+		y:      area_center.y + (shy.half * area_center.height) - area_center.height * 0.1
+		align:  .center
 		origin: shy.Anchor.center
-		size: 50 * font_size_factor
-		text: text
+		size:   50 * font_size_factor
+		text:   text
 	)
 
 	if ims.is_hovered {
@@ -215,9 +215,9 @@ fn (ims ImageSelector) draw() {
 		// base_color := colors.blue
 		// Left navigation button
 		l_rect := shy.Rect{
-			x: (shy.half * button_wh) + area_center.x - shy.half * area_center.width
-			y: area_center.y
-			width: button_wh
+			x:      (shy.half * button_wh) + area_center.x - shy.half * area_center.width
+			y:      area_center.y
+			width:  button_wh
 			height: button_wh
 		}
 		/*
@@ -238,17 +238,17 @@ fn (ims ImageSelector) draw() {
 			b: shy.vec2(l_rect.x + l_rect.width, l_rect.y)
 			c: shy.vec2(l_rect.x + l_rect.width, l_rect.y + l_rect.height)
 			// rotation: 90
-			fills: .body
-			color: shy.colors.shy.white
+			fills:  .body
+			color:  shy.colors.shy.white
 			origin: shy.Anchor.center
-			scale: 0.7
+			scale:  0.7
 		)
 
 		// Right navigation button
 		r_rect := shy.Rect{
-			x: area_center.x + shy.half * area_center.width - (shy.half * button_wh)
-			y: area_center.y
-			width: button_wh
+			x:      area_center.x + shy.half * area_center.width - (shy.half * button_wh)
+			y:      area_center.y
+			width:  button_wh
 			height: button_wh
 		}
 		/*
@@ -269,10 +269,10 @@ fn (ims ImageSelector) draw() {
 			b: shy.vec2(r_rect.x + r_rect.width, r_rect.y + shy.half * r_rect.height)
 			c: shy.vec2(r_rect.x, r_rect.y + r_rect.height)
 			// rotation: rotation
-			fills: .body
-			color: shy.colors.shy.white
+			fills:  .body
+			color:  shy.colors.shy.white
 			origin: shy.Anchor.center
-			scale: 0.7
+			scale:  0.7
 		)
 	}
 }

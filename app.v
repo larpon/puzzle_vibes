@@ -79,7 +79,7 @@ fn (mut a App) set_mode(mode Mode) {
 			a.save_settings() or {
 				eprintln('Saving settings failed: ${err}')
 				a.show_toast(Toast{
-					text: 'Saving settings failed'
+					text:     'Saving settings failed'
 					duration: 2.5
 				})
 			}
@@ -114,34 +114,34 @@ pub fn (mut a App) init() ! {
 	a.window.set_icon(icon)!
 
 	a.ps = a.easy.new_particle_system(
-		width: a.canvas().width
+		width:  a.canvas().width
 		height: a.canvas().height
-		pool: 2500
+		pool:   2500
 	)
 
 	design_factor := f32(1440) / a.canvas().width
 	scale := f32(2.0) * 1 / design_factor
 	a.ps.add(&particle.Emitter{
-		enabled: false // true
-		rate: 50
+		enabled:  false // true
+		rate:     50
 		position: shy.vec2[f32](shy.half * a.canvas().width, shy.half * a.canvas().height)
 		velocity: particle.AngleDirection{
-			angle: 0
-			angle_variation: 360
-			magnitude: 15
+			angle:               0
+			angle_variation:     360
+			magnitude:           15
 			magnitude_variation: 1
 		}
 		acceleration: particle.AngleDirection{
-			angle: 0
-			angle_variation: 360
-			magnitude: -20
+			angle:               0
+			angle_variation:     360
+			magnitude:           -20
 			magnitude_variation: 2
 		}
-		start_size: shy.vec2[f32](30.0 * scale, 35 * scale)
-		size_variation: shy.vec2[f32](10.0 * scale, 10 * scale)
-		life_time: 500 //* (1 / design_factor)
+		start_size:          shy.vec2[f32](30.0 * scale, 35 * scale)
+		size_variation:      shy.vec2[f32](10.0 * scale, 10 * scale)
+		life_time:           500 //* (1 / design_factor)
 		life_time_variation: 500 //* (1 / design_factor)
-		movement_velocity: 20 * (1 / design_factor)
+		movement_velocity:   20 * (1 / design_factor)
 	})
 
 	a.ps.replace_default_painter(a.easy.image_particle_painter(
@@ -149,21 +149,21 @@ pub fn (mut a App) init() ! {
 	))
 
 	a.quick.load(shy.ImageOptions{
-		resize: a.canvas().factor
-		source: a.asset(default_image)
+		resize:     a.canvas().factor
+		source:     a.asset(default_image)
 		min_filter: .nearest
 		mag_filter: .nearest
 	})!
 
 	mut puzzle_images := []ImageSelectorEntry{}
 	puzzle_images << ImageSelectorEntry{
-		name: 'Pixel Art Ruins'
+		name:   'Pixel Art Ruins'
 		source: a.asset(default_image)
 	}
 	for e in image_db {
 		image := a.asset(os.join_path('images', e.file))
 		entry := ImageSelectorEntry{
-			name: e.name
+			name:   e.name
 			source: image
 		}
 		if entry !in puzzle_images {
@@ -207,7 +207,7 @@ pub fn (mut a App) init() ! {
 			app.play_random_music()
 		}*/
 		a.music[e.name] = Music{
-			info: e
+			info:  e
 			sound: sound
 		}
 	}
@@ -233,7 +233,7 @@ pub fn (mut a App) init() ! {
 		sfx := a.asset(os.join_path('sfx', e.file))
 		a.sfx[e.name] = e
 		a.quick.load(shy.SoundOptions{
-			source: sfx
+			source:      sfx
 			max_repeats: 3
 		})!
 	}
@@ -241,17 +241,17 @@ pub fn (mut a App) init() ! {
 	viewport := a.canvas().rect()
 
 	a.puzzle = new_puzzle(
-		app: a
+		app:      a
 		viewport: viewport
-		image: img
+		image:    img
 	)!
 
 	a.bind_button_handlers()!
 
 	// Menu
 	a.start_button = &MenuButton{
-		app: a
-		label: 'START'
+		app:        a
+		label:      'START'
 		on_clicked: fn [mut a] () bool {
 			mut button := a.start_button
 			a.start_game() or { panic(err) }
@@ -277,15 +277,15 @@ pub fn (mut a App) init() ! {
 
 	// Game
 	a.back_button = &BackButton{
-		app: a
-		label: 'QUIT'
+		app:        a
+		label:      'QUIT'
 		on_clicked: fn [mut a] () bool {
 			if a.mode == .menu {
 				mut events := a.shy.events()
 				events.send(shy.QuitEvent{
 					timestamp: a.shy.ticks()
 					window_id: a.window.id
-					request: true
+					request:   true
 				}) or {}
 			} else {
 				if a.mode == .options {
@@ -315,8 +315,8 @@ pub fn (mut a App) init() ! {
 	}
 
 	a.options_button = &OptionsButton{
-		app: a
-		label: 'OPTIONS'
+		app:        a
+		label:      'OPTIONS'
 		on_clicked: fn [mut a] () bool {
 			if a.mode == .menu {
 				mut button := a.options_button
@@ -344,16 +344,16 @@ pub fn (mut a App) init() ! {
 	}
 
 	a.image_selector = &ImageSelector{
-		app: a
-		label: 'Select a puzzle'
-		images: puzzle_images
+		app:        a
+		label:      'Select a puzzle'
+		images:     puzzle_images
 		on_clicked: fn [mut a] () bool {
 			if a.mode == .menu {
 				ims_rect := a.image_selector.window_de_origin_rect()
 				left_side := shy.Rect{
-					x: ims_rect.x
-					y: ims_rect.y
-					width: shy.half * ims_rect.width
+					x:      ims_rect.x
+					y:      ims_rect.y
+					width:  shy.half * ims_rect.width
 					height: ims_rect.height
 				}
 				// 				right_side := shy.Rect{
@@ -374,16 +374,16 @@ pub fn (mut a App) init() ! {
 						close_center_y := (ims_rect_c.y - (shy.half * ims_rect_c.height * scale) +
 							margin)
 						remove_area := shy.Rect{
-							x: close_center_x
-							y: close_center_y
-							width: radius
+							x:      close_center_x
+							y:      close_center_y
+							width:  radius
 							height: radius
 						}.displaced_from(shy.Anchor.center)
 						if remove_area.contains(a.mouse.x, a.mouse.y) {
 							a.image_selector.remove_selected_image()
 							a.remove_user_image(image.source.str())
 							a.show_toast(Toast{
-								text: 'Removed "${image.name}"'
+								text:     'Removed "${image.name}"'
 								duration: 1.5
 							})
 							return true
@@ -427,7 +427,7 @@ pub fn (mut a App) init() ! {
 			if a.mode == .options {
 				if cell := a.dim_selector.to_cell(shy.vec2[f32](a.mouse.x, a.mouse.y)) {
 					a.dim_selector.dim = shy.Size{
-						width: cell.x
+						width:  cell.x
 						height: cell.y
 					}
 					a.dim_selector.label = '${a.dim_selector.dim.width:.0f}x${a.dim_selector.dim.height:.0f} Puzzle, ${int(a.dim_selector.dim.area())} pieces'
@@ -747,23 +747,23 @@ pub fn (mut a App) on_resize() {
 	a.update_canvas()
 	draw_canvas := a.canvas()
 	a.start_button.Button.Rect = shy.Rect{
-		x: shy.half * draw_canvas.width
-		y: 0.85 * draw_canvas.height //+ (draw_canvas.height * 0.15)
-		width: 0.12 * draw_canvas.width
+		x:      shy.half * draw_canvas.width
+		y:      0.85 * draw_canvas.height //+ (draw_canvas.height * 0.15)
+		width:  0.12 * draw_canvas.width
 		height: 0.05 * draw_canvas.width
 	}
 
 	a.image_selector.Rect = shy.Rect{
-		x: shy.half * draw_canvas.width
-		y: shy.half * draw_canvas.height + (draw_canvas.height * 0.05)
-		width: 0.4 * draw_canvas.width
+		x:      shy.half * draw_canvas.width
+		y:      shy.half * draw_canvas.height + (draw_canvas.height * 0.05)
+		width:  0.4 * draw_canvas.width
 		height: 0.2 * draw_canvas.width
 	}
 
 	a.dim_selector.Rect = shy.Rect{
-		x: shy.half * draw_canvas.width
-		y: shy.half * draw_canvas.height - (draw_canvas.height * 0.05)
-		width: 0.3 * draw_canvas.width
+		x:      shy.half * draw_canvas.width
+		y:      shy.half * draw_canvas.height - (draw_canvas.height * 0.05)
+		width:  0.3 * draw_canvas.width
 		height: 0.18 * draw_canvas.width
 	}
 
@@ -780,15 +780,15 @@ pub fn (mut a App) on_resize() {
 			// em.life_time_variation = 500 * (1 / design_factor)
 			em.movement_velocity = 20 * (1 / design_factor)
 			em.velocity = particle.AngleDirection{
-				angle: 0
-				angle_variation: 360
-				magnitude: 15 * (1 / design_factor)
+				angle:               0
+				angle_variation:     360
+				magnitude:           15 * (1 / design_factor)
 				magnitude_variation: 1 * (1 / design_factor)
 			}
 			em.acceleration = particle.AngleDirection{
-				angle: 0
-				angle_variation: 360
-				magnitude: -20 * (1 / design_factor)
+				angle:               0
+				angle_variation:     360
+				magnitude:           -20 * (1 / design_factor)
 				magnitude_variation: 2 * (1 / design_factor)
 			}
 
@@ -814,7 +814,7 @@ pub fn (mut a App) variable_update(dt f64) {
 		a.save_settings() or {
 			eprintln('Saving settings failed: ${err}')
 			a.show_toast(Toast{
-				text: 'Saving settings failed'
+				text:     'Saving settings failed'
 				duration: 2.5
 			})
 		}
@@ -878,9 +878,9 @@ pub fn (mut a App) start_game() ! {
 	}
 
 	a.puzzle.init(
-		app: a
-		viewport: a.canvas().rect()
-		image: img
+		app:        a
+		viewport:   a.canvas().rect()
+		image:      img
 		dimensions: a.settings.dimensions
 	)!
 
@@ -931,8 +931,8 @@ pub fn (mut a App) add_user_image(path string) ! {
 		filename := os.file_name(path)
 		entry := ImageSelectorEntry{
 			removable: true
-			name: filename.all_before_last('.')
-			source: path
+			name:      filename.all_before_last('.')
+			source:    path
 		}
 		a.quick.load(shy.ImageOptions{
 			resize: a.canvas().factor
@@ -968,13 +968,13 @@ pub fn (mut a App) event(e shy.Event) {
 				filename := os.file_name(image)
 				a.add_user_image(image) or {
 					a.show_toast(Toast{
-						text: 'Failed adding "${filename}"'
+						text:     'Failed adding "${filename}"'
 						duration: 2.5
 					})
 					return
 				}
 				a.show_toast(Toast{
-					text: 'Added ${filename}'
+					text:     'Added ${filename}'
 					duration: 2.5
 				})
 				a.play_sfx('Squish')
@@ -1024,9 +1024,9 @@ pub fn (mut a App) render_game_frame(dt f64) {
 	a.quick.image(
 		// x: 0
 		// y: 0
-		source: a.asset('images/seamless_wooden_texture.jpg')
-		width: a.canvas().width
-		height: a.canvas().height
+		source:    a.asset('images/seamless_wooden_texture.jpg')
+		width:     a.canvas().width
+		height:    a.canvas().height
 		fill_mode: .tile
 	)
 
@@ -1035,20 +1035,20 @@ pub fn (mut a App) render_game_frame(dt f64) {
 	puz_pos := shy.vec2(a.puzzle.x, a.puzzle.y)
 
 	a.quick.rect(
-		x: puz_pos.x - 3
-		y: puz_pos.y - 3
-		width: (a.puzzle.width) * puz_scale + 5
+		x:      puz_pos.x - 3
+		y:      puz_pos.y - 3
+		width:  (a.puzzle.width) * puz_scale + 5
 		height: (a.puzzle.height) * puz_scale + 5
-		color: shy.rgba(0, 0, 0, 255 / 4)
-		fills: .body
+		color:  shy.rgba(0, 0, 0, 255 / 4)
+		fills:  .body
 	)
 	a.quick.rect(
-		x: puz_pos.x + 2.5
-		y: puz_pos.y + 2.5
-		width: (a.puzzle.width) * puz_scale - 4.5
+		x:      puz_pos.x + 2.5
+		y:      puz_pos.y + 2.5
+		width:  (a.puzzle.width) * puz_scale - 4.5
 		height: (a.puzzle.height) * puz_scale - 4.5
-		color: shy.rgba(0, 0, 0, 255 / 4)
-		fills: .body
+		color:  shy.rgba(0, 0, 0, 255 / 4)
+		fills:  .body
 	)
 
 	a.puzzle.draw()
@@ -1068,15 +1068,15 @@ pub fn (mut a App) render_game_frame(dt f64) {
 				mouse_area := piece.viewport_rect_raw()
 				a.quick.rect(
 					// Rect: mouse_area // need int() to round off
-					x: int(mouse_area.x)
-					y: int(mouse_area.y)
-					width: int(mouse_area.width)
-					height: int(mouse_area.height)
+					x:        int(mouse_area.x)
+					y:        int(mouse_area.y)
+					width:    int(mouse_area.width)
+					height:   int(mouse_area.height)
 					rotation: piece.rotation * shy.deg2rad // piece rotation is stored as degrees
-					color: color
-					fills: .stroke
-					origin: shy.Anchor.center
-					stroke: shy.Stroke{
+					color:    color
+					fills:    .stroke
+					origin:   shy.Anchor.center
+					stroke:   shy.Stroke{
 						color: color
 					}
 				)
@@ -1092,7 +1092,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		mut bgcolor := shy.colors.shy.white
 		bgcolor.a = 30
 		a.quick.rect(
-			Rect: a.canvas().rect()
+			Rect:  a.canvas().rect()
 			color: bgcolor
 			fills: .body
 		)
@@ -1101,12 +1101,12 @@ pub fn (mut a App) render_game_frame(dt f64) {
 
 		font_size := f32(192) * font_size_factor
 		excellent_text := a.easy.text(
-			x: a.canvas().width * shy.half
-			y: a.canvas().height * shy.half
-			align: .center
+			x:      a.canvas().width * shy.half
+			y:      a.canvas().height * shy.half
+			align:  .center
 			origin: shy.Anchor.center
-			size: font_size
-			text: 'EXCELLENT'
+			size:   font_size
+			text:   'EXCELLENT'
 		)
 		et_bounds := excellent_text.bounds()
 
@@ -1116,12 +1116,12 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		if show_play_time {
 			play_time := time.Duration(i64(a.game_end_time - a.game_start_time) * 1000000)
 			play_time_text = a.easy.text(
-				x: (a.canvas().width * shy.half)
-				y: (a.canvas().height * shy.half) + (shy.half * et_bounds.height) //* 1.1
-				align: .center
+				x:      (a.canvas().width * shy.half)
+				y:      (a.canvas().height * shy.half) + (shy.half * et_bounds.height) //* 1.1
+				align:  .center
 				origin: shy.Anchor.top_center
-				size: f32(60) * font_size_factor
-				text: 'Puzzle solved in ${play_time}'
+				size:   f32(60) * font_size_factor
+				text:   'Puzzle solved in ${play_time}'
 				offset: shy.vec2[f32](0, 10 * font_size_factor)
 			)
 		}
@@ -1137,7 +1137,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		mut color := shy.colors.shy.green
 		color.a = 180
 		a.quick.rect(
-			Rect: cover
+			Rect:  cover
 			color: color
 			fills: .body
 		)

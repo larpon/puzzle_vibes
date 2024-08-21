@@ -21,21 +21,21 @@ fn (a App) play_sfx(entry string) {
 fn (a App) play_sfx_with_pitch(entry string, pitch f32) {
 	a.quick.play(
 		source: a.asset('sfx/' + a.sfx[entry].file)
-		pitch: pitch
+		pitch:  pitch
 	)
 }
 
 fn (a App) play_sfx_with_random_pitch(entry string) {
 	a.quick.play(
 		source: a.asset('sfx/' + a.sfx[entry].file)
-		pitch: rand.f32_in_range(0.8, 1.2) or { 0.0 }
+		pitch:  rand.f32_in_range(0.8, 1.2) or { 0.0 }
 	)
 }
 
 fn (a App) play_sfx_with_random_pitch_in_range(entry string, from f32, to f32) {
 	a.quick.play(
 		source: a.asset('sfx/' + a.sfx[entry].file)
-		pitch: rand.f32_in_range(from, to) or { 0.0 }
+		pitch:  rand.f32_in_range(from, to) or { 0.0 }
 	)
 }
 

@@ -14,9 +14,9 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 	a.quick.image(
 		// x: 0
 		// y: 0
-		source: a.asset('images/seamless_wooden_texture.jpg')
-		width: a.canvas().width
-		height: a.canvas().height
+		source:    a.asset('images/seamless_wooden_texture.jpg')
+		width:     a.canvas().width
+		height:    a.canvas().height
 		fill_mode: .tile
 	)
 
@@ -37,12 +37,12 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 
 	// Logo
 	a.quick.image(
-		x: shy.half * draw_canvas.width
-		y: shy.half * draw_canvas.height
+		x:      shy.half * draw_canvas.width
+		y:      shy.half * draw_canvas.height
 		source: a.asset('images/puzzle_vibes_logo.png')
 		origin: shy.Anchor.center
 		offset: shy.vec2[f32](0, -(draw_canvas.height * 0.32))
-		scale: (a.canvas().width / 1920) * 0.45
+		scale:  (a.canvas().width / 1920) * 0.45
 	)
 
 	a.options_button.draw()
@@ -59,22 +59,22 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 
 	sb_rect := a.start_button.Button.Rect
 	a.quick.text(
-		x: sb_rect.x
-		y: sb_rect.y + shy.half * sb_rect.height + 20 * size_factor
-		align: .center
+		x:      sb_rect.x
+		y:      sb_rect.y + shy.half * sb_rect.height + 20 * size_factor
+		align:  .center
 		origin: shy.Anchor.center
-		size: 20 * size_factor
-		text: '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
+		size:   20 * size_factor
+		text:   '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
 	)
 
 	mut version_info := a.version_full
 	a.quick.text(
-		x: 10 * size_factor
-		y: draw_canvas.height - 10 * size_factor
-		align: .center
+		x:      10 * size_factor
+		y:      draw_canvas.height - 10 * size_factor
+		align:  .center
 		origin: shy.Anchor.bottom_left
-		size: 15 * size_factor
-		text: '${version_info}'
+		size:   15 * size_factor
+		text:   '${version_info}'
 	)
 }
 
@@ -113,7 +113,7 @@ pub fn (mut a App) on_menu_event_update(e UIEvent) {
 				.t {
 					$if debug {
 						a.show_toast(
-							text: 'test'
+							text:     'test'
 							duration: 4
 						)
 					}
@@ -123,7 +123,7 @@ pub fn (mut a App) on_menu_event_update(e UIEvent) {
 						a.reset_settings() or {
 							eprintln('Resetting settings failed: ${err}')
 							a.show_toast(
-								text: 'Resetting settings failed'
+								text:     'Resetting settings failed'
 								duration: 4
 							)
 						}
