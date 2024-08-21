@@ -13,7 +13,7 @@ The Puzzle Vibes logo and icon is Copyright (c) 2022 Lars Pontoppidan.
 
 # Running the game
 
-To build and run the game please install [`shy`](https://github.com/Larpon/shy) and then in the project root do:
+To build and run the game please install [`shy`](https://github.com/larpon/shy) and then in the project root do:
 
 Currently there's some bug with V's garbage collector that makes SDL crash, to avoid this use:
 
