@@ -1,7 +1,7 @@
 Module {
 	name: 'Puzzle Vibes'
 	description: 'A puzzle game made with Shy'
-	version: '0.8.2'
+	version: '0.8.3'
 	license: 'MIT'
 	repo_url: 'https://github.com/larpon/puzzle_vibes'
 	dependencies: ['https://github.com/larpon/shy']
