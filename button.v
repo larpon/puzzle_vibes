@@ -43,7 +43,7 @@ fn (b Button) draw() {
 		stroke: shy.Stroke{
 			width: 3
 		}
-		scale: b.scale
+		scale:  b.scale
 	)
 
 	/*
@@ -105,7 +105,7 @@ fn (mb MenuButton) draw() {
 		stroke: shy.Stroke{
 			width: 3
 		}
-		scale: mb.scale
+		scale:  mb.scale
 	)
 
 	mut design_factor := f32(1440) / draw_canvas.width

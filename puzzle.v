@@ -482,12 +482,12 @@ pub fn (p &Piece) draw() {
 		shadow_color := shy.rgba(0, 0, 0, 70)
 		shadow_offset := f32(0)
 		a.quick.rect(
-			Rect:   p.viewport_rect_raw()
-			offset: shy.vec2[f32](shadow_offset, shadow_offset)
-			fills:  .stroke
-			origin: shy.Anchor.center
-			scale:  grab_scale
-			stroke: shy.Stroke{
+			Rect:     p.viewport_rect_raw()
+			offset:   shy.vec2[f32](shadow_offset, shadow_offset)
+			fills:    .stroke
+			origin:   shy.Anchor.center
+			scale:    grab_scale
+			stroke:   shy.Stroke{
 				color: shadow_color
 				width: 3
 			}
@@ -544,7 +544,7 @@ pub fn (p &Piece) draw() {
 			origin: shy.Anchor.center
 			scale:  grab_scale
 			// offset: offset
-			stroke: shy.Stroke{
+			stroke:   shy.Stroke{
 				color: color
 				width: 3
 			}

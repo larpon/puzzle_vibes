@@ -121,17 +121,17 @@ pub fn (mut a App) init() ! {
 
 	design_factor := f32(1440) / a.canvas().width
 	scale := f32(2.0) * 1 / design_factor
-	a.ps.add(&particle.Emitter{
-		enabled:  false // true
-		rate:     50
-		position: shy.vec2[f32](shy.half * a.canvas().width, shy.half * a.canvas().height)
-		velocity: particle.AngleDirection{
+	a.ps.add(particle.Emitter{
+		enabled:             false // true
+		rate:                50
+		position:            shy.vec2[f32](shy.half * a.canvas().width, shy.half * a.canvas().height)
+		velocity:            particle.AngleDirection{
 			angle:               0
 			angle_variation:     360
 			magnitude:           15
 			magnitude_variation: 1
 		}
-		acceleration: particle.AngleDirection{
+		acceleration:        particle.AngleDirection{
 			angle:               0
 			angle_variation:     360
 			magnitude:           -20
@@ -268,7 +268,7 @@ pub fn (mut a App) init() ! {
 			a.play_sfx('Squish')
 			return false
 		}
-		on_leave: fn [mut a] () bool {
+		on_leave:   fn [mut a] () bool {
 			mut button := a.start_button
 			button.scale = 1
 			return false
@@ -307,7 +307,7 @@ pub fn (mut a App) init() ! {
 			button.scale = 0.98
 			return false
 		}
-		on_leave: fn [mut a] () bool {
+		on_leave:   fn [mut a] () bool {
 			mut button := a.back_button
 			button.scale = 1
 			return false
@@ -336,7 +336,7 @@ pub fn (mut a App) init() ! {
 			button.scale = 0.98
 			return false
 		}
-		on_leave: fn [mut a] () bool {
+		on_leave:   fn [mut a] () bool {
 			mut button := a.options_button
 			button.scale = 1
 			return false
@@ -414,8 +414,8 @@ pub fn (mut a App) init() ! {
 	}
 
 	a.dim_selector = &DimensionSelector{
-		app: a
-		dim: shy.size(3, 3)
+		app:        a
+		dim:        shy.size(3, 3)
 		/*
 		on_clicked: fn [mut a] () bool {
 			if a.mode == .options {

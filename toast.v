@@ -27,9 +27,9 @@ pub fn (mut a App) show_toast(toast Toast) {
 		for mut toast in a.toasts {
 			if toast.id == tid {
 				ac := shy.AnimatorConfig{
-					running:  true
-					duration: 500
-					ease:     ease.Ease{
+					running:     true
+					duration:    500
+					ease:        ease.Ease{
 						kind: .sine
 						mode: .out
 					}

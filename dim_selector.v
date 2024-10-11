@@ -94,7 +94,7 @@ fn (dims &DimensionSelector) draw() {
 			width: 3
 			color: border_color
 		}*/
-		scale: dims.scale
+		scale:  dims.scale
 	)
 
 	mut design_factor := f32(1440) / draw_canvas.width

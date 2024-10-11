@@ -105,7 +105,7 @@ fn (ims ImageSelector) draw() {
 			width: 3
 			color: border_color
 		}*/
-		scale: ims.scale
+		scale:  ims.scale
 	)
 
 	mut design_factor := f32(1440) / draw_canvas.width
