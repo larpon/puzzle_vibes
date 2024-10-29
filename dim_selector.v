@@ -19,10 +19,10 @@ mut:
 	scale         f32       = 1.0
 	click_started bool
 	is_hovered    bool
-	on_clicked    fn () bool = unsafe { nil } // TODO V BUG: using ?fn () bool doesn't work with closures
-	on_hovered    fn () bool = unsafe { nil } // TODO V BUG: using ?fn () bool doesn't work with closures
-	on_leave      fn () bool = unsafe { nil } // TODO V BUG: using ?fn () bool doesn't work with closures
-	on_pressed    fn () bool = unsafe { nil } // TODO V BUG: using ?fn () bool doesn't work with closures
+	on_clicked    fn (mut App) bool = unsafe { nil } // TODO V BUG: using ?fn () bool doesn't work with closures
+	on_hovered    fn (mut App) bool = unsafe { nil } // TODO V BUG: using ?fn () bool doesn't work with closures
+	on_leave      fn (mut App) bool = unsafe { nil } // TODO V BUG: using ?fn () bool doesn't work with closures
+	on_pressed    fn (mut App) bool = unsafe { nil } // TODO V BUG: using ?fn () bool doesn't work with closures
 }
 
 fn (dims DimensionSelector) window_rect() shy.Rect {

@@ -53,7 +53,6 @@ mut:
 	music          map[string]Music
 	cur_music      string
 	hovered_pieces []Piece // To avoid re-allocating a new array every event
-	toast_ids      u16
 	toasts         []Toast
 	//
 	save_settings_next bool
@@ -252,25 +251,23 @@ pub fn (mut a App) init() ! {
 	a.start_button = &MenuButton{
 		app:        a
 		label:      'START'
-		on_clicked: fn [mut a] () bool {
-			mut button := a.start_button
+		on_clicked: fn (mut a App) bool {
 			a.start_game() or { panic(err) }
-			a.shy.once(fn [mut a, mut button] () {
+			a.shy.once(fn (t &shy.Timer) {
+				mut a := t.shy.app[App]()
 				// println('${a.mode} -> .game')
-				button.scale = 1
+				a.start_button.scale = 1
 				a.set_mode(.game)
 			}, 150)
 			return true
 		}
-		on_pressed: fn [mut a] () bool {
-			mut button := a.start_button
-			button.scale = 0.98
+		on_pressed: fn (mut a App) bool {
+			a.start_button.scale = 0.98
 			a.play_sfx('Squish')
 			return false
 		}
-		on_leave:   fn [mut a] () bool {
-			mut button := a.start_button
-			button.scale = 1
+		on_leave:   fn (mut a App) bool {
+			a.start_button.scale = 1
 			return false
 		}
 	}
@@ -279,7 +276,7 @@ pub fn (mut a App) init() ! {
 	a.back_button = &BackButton{
 		app:        a
 		label:      'QUIT'
-		on_clicked: fn [mut a] () bool {
+		on_clicked: fn (mut a App) bool {
 			if a.mode == .menu {
 				mut events := a.shy.events()
 				events.send(shy.QuitEvent{
@@ -291,25 +288,22 @@ pub fn (mut a App) init() ! {
 				if a.mode == .options {
 					a.settings.dimensions = a.dim_selector.dim
 				}
-				mut button := a.back_button
-
-				a.shy.once(fn [mut a, mut button] () {
+				a.shy.once(fn (t &shy.Timer) {
+					mut a := t.shy.app[App]()
 					// println('${a.mode} -> .game')
-					button.scale = 1
+					a.back_button.scale = 1
 					a.set_mode(.menu)
 				}, 150)
 			}
 			return true
 		}
-		on_pressed: fn [mut a] () bool {
+		on_pressed: fn (mut a App) bool {
 			a.play_sfx('Squish')
-			mut button := a.back_button
-			button.scale = 0.98
+			a.back_button.scale = 0.98
 			return false
 		}
-		on_leave:   fn [mut a] () bool {
-			mut button := a.back_button
-			button.scale = 1
+		on_leave:   fn (mut a App) bool {
+			a.back_button.scale = 1
 			return false
 		}
 	}
@@ -317,12 +311,12 @@ pub fn (mut a App) init() ! {
 	a.options_button = &OptionsButton{
 		app:        a
 		label:      'OPTIONS'
-		on_clicked: fn [mut a] () bool {
+		on_clicked: fn (mut a App) bool {
 			if a.mode == .menu {
-				mut button := a.options_button
-				a.shy.once(fn [mut a, mut button] () {
+				a.shy.once(fn (t &shy.Timer) {
+					mut a := t.shy.app[App]()
 					// println('${a.mode} -> .options')
-					button.scale = 1
+					a.options_button.scale = 1
 					a.dim_selector.dim = a.settings.dimensions
 					a.set_mode(.options)
 				}, 150)
@@ -330,15 +324,13 @@ pub fn (mut a App) init() ! {
 			}
 			return false
 		}
-		on_pressed: fn [mut a] () bool {
+		on_pressed: fn (mut a App) bool {
 			a.play_sfx('Squish')
-			mut button := a.options_button
-			button.scale = 0.98
+			a.options_button.scale = 0.98
 			return false
 		}
-		on_leave:   fn [mut a] () bool {
-			mut button := a.options_button
-			button.scale = 1
+		on_leave:   fn (mut a App) bool {
+			a.options_button.scale = 1
 			return false
 		}
 	}
@@ -347,7 +339,7 @@ pub fn (mut a App) init() ! {
 		app:        a
 		label:      'Select a puzzle'
 		images:     puzzle_images
-		on_clicked: fn [mut a] () bool {
+		on_clicked: fn (mut a App) bool {
 			if a.mode == .menu {
 				ims_rect := a.image_selector.window_de_origin_rect()
 				left_side := shy.Rect{
@@ -423,7 +415,7 @@ pub fn (mut a App) init() ! {
 			}
 			return false
 		}*/
-		on_pressed: fn [mut a] () bool {
+		on_pressed: fn (mut a App) bool {
 			if a.mode == .options {
 				if cell := a.dim_selector.to_cell(shy.vec2[f32](a.mouse.x, a.mouse.y)) {
 					a.dim_selector.dim = shy.Size{
@@ -454,10 +446,11 @@ pub fn (mut a App) init() ! {
 }
 
 pub fn (mut a App) bind_button_handlers() ! {
-	a.mouse.on_button_down(fn [mut a] (mbe shy.MouseButtonEvent) bool {
+	a.mouse.on_button_down(fn (s &shy.Shy, mbe shy.MouseButtonEvent) bool {
 		if mbe.button != .left {
 			return false
 		}
+		mut a := s.app[App]()
 		mouse := a.mouse
 
 		mut handled := false
@@ -468,7 +461,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			// println(mbe.clicks)
 			bb.click_started = true
 			if bb.on_pressed != unsafe { nil } {
-				return bb.on_pressed()
+				return bb.on_pressed(mut a)
 			}
 		}
 
@@ -480,7 +473,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 				// println(mbe.clicks)
 				mb.click_started = true
 				if mb.on_pressed != unsafe { nil } {
-					return mb.on_pressed()
+					return mb.on_pressed(mut a)
 				}
 			}
 
@@ -491,7 +484,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 				// println(mbe.clicks)
 				ob.click_started = true
 				if ob.on_pressed != unsafe { nil } {
-					return ob.on_pressed()
+					return ob.on_pressed(mut a)
 				}
 			}
 
@@ -502,7 +495,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 				// println(imse.clicks)
 				ims.click_started = true
 				if ims.on_pressed != unsafe { nil } {
-					return ims.on_pressed()
+					return ims.on_pressed(mut a)
 				}
 			}
 		}
@@ -515,7 +508,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 				// println(imse.clicks)
 				dims.click_started = true
 				if dims.on_pressed != unsafe { nil } {
-					return dims.on_pressed()
+					return dims.on_pressed(mut a)
 				}
 			}
 		}
@@ -523,7 +516,8 @@ pub fn (mut a App) bind_button_handlers() ! {
 		return handled
 	})
 
-	a.mouse.on_motion(fn [mut a] (mme shy.MouseMotionEvent) bool {
+	a.mouse.on_motion(fn (s &shy.Shy, mme shy.MouseMotionEvent) bool {
+		mut a := s.app[App]()
 		mouse := a.mouse
 
 		mut handled := false
@@ -533,12 +527,12 @@ pub fn (mut a App) bind_button_handlers() ! {
 		if mouse_area.contains(mouse.x, mouse.y) {
 			bb.is_hovered = true
 			if bb.on_hovered != unsafe { nil } {
-				handled = bb.on_hovered()
+				handled = bb.on_hovered(mut a)
 			}
 		} else {
 			bb.is_hovered = false
 			if bb.on_leave != unsafe { nil } {
-				handled = bb.on_leave()
+				handled = bb.on_leave(mut a)
 			}
 		}
 		if handled {
@@ -552,12 +546,12 @@ pub fn (mut a App) bind_button_handlers() ! {
 			if mouse_area.contains(mouse.x, mouse.y) {
 				mb.is_hovered = true
 				if mb.on_hovered != unsafe { nil } {
-					handled = mb.on_hovered()
+					handled = mb.on_hovered(mut a)
 				}
 			} else {
 				mb.is_hovered = false
 				if mb.on_leave != unsafe { nil } {
-					handled = mb.on_leave()
+					handled = mb.on_leave(mut a)
 				}
 			}
 
@@ -567,12 +561,12 @@ pub fn (mut a App) bind_button_handlers() ! {
 			if mouse_area.contains(mouse.x, mouse.y) {
 				ob.is_hovered = true
 				if ob.on_hovered != unsafe { nil } {
-					handled = ob.on_hovered()
+					handled = ob.on_hovered(mut a)
 				}
 			} else {
 				ob.is_hovered = false
 				if ob.on_leave != unsafe { nil } {
-					handled = ob.on_leave()
+					handled = ob.on_leave(mut a)
 				}
 			}
 
@@ -582,12 +576,12 @@ pub fn (mut a App) bind_button_handlers() ! {
 			if mouse_area.contains(mouse.x, mouse.y) {
 				ims.is_hovered = true
 				if ims.on_hovered != unsafe { nil } {
-					handled = ims.on_hovered()
+					handled = ims.on_hovered(mut a)
 				}
 			} else {
 				ims.is_hovered = false
 				if ims.on_leave != unsafe { nil } {
-					handled = ims.on_leave()
+					handled = ims.on_leave(mut a)
 				}
 			}
 		}
@@ -599,22 +593,23 @@ pub fn (mut a App) bind_button_handlers() ! {
 			if mouse_area.contains(mouse.x, mouse.y) {
 				dims.is_hovered = true
 				if dims.on_hovered != unsafe { nil } {
-					handled = dims.on_hovered()
+					handled = dims.on_hovered(mut a)
 				}
 			} else {
 				dims.is_hovered = false
 				if dims.on_leave != unsafe { nil } {
-					handled = dims.on_leave()
+					handled = dims.on_leave(mut a)
 				}
 			}
 		}
 		return handled
 	})
 
-	a.mouse.on_button_click(fn [mut a] (mbe shy.MouseButtonEvent) bool {
+	a.mouse.on_button_click(fn (s &shy.Shy, mbe shy.MouseButtonEvent) bool {
 		if mbe.button != .left {
 			return false
 		}
+		mut a := s.app[App]()
 		mouse := a.mouse
 		mut handled := false
 
@@ -626,12 +621,12 @@ pub fn (mut a App) bind_button_handlers() ! {
 		if was_started && mouse_area.contains(mouse.x, mouse.y) {
 			// println(mbe.clicks)
 			if bb.on_clicked != unsafe { nil } {
-				handled = bb.on_clicked()
+				handled = bb.on_clicked(mut a)
 			}
 		} else {
 			bb.is_hovered = false
 			if bb.on_leave != unsafe { nil } {
-				handled = bb.on_leave()
+				handled = bb.on_leave(mut a)
 			}
 		}
 		if handled {
@@ -651,7 +646,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			if was_started && mb_mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
 				if mb.on_clicked != unsafe { nil } {
-					handled = mb.on_clicked()
+					handled = mb.on_clicked(mut a)
 				}
 			}
 
@@ -663,7 +658,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			if was_started && ob_mouse_area.contains(mouse.x, mouse.y) {
 				// println(mbe.clicks)
 				if ob.on_clicked != unsafe { nil } {
-					handled = ob.on_clicked()
+					handled = ob.on_clicked(mut a)
 				}
 			}
 
@@ -675,7 +670,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			if was_started && ims_mouse_area.contains(mouse.x, mouse.y) {
 				// println(imse.clicks)
 				if ims.on_clicked != unsafe { nil } {
-					handled = ims.on_clicked()
+					handled = ims.on_clicked(mut a)
 				}
 			}
 		}
@@ -688,7 +683,7 @@ pub fn (mut a App) bind_button_handlers() ! {
 			if was_started && dims_mouse_area.contains(mouse.x, mouse.y) {
 				// println(imse.clicks)
 				if dims.on_clicked != unsafe { nil } {
-					handled = dims.on_clicked()
+					handled = dims.on_clicked(mut a)
 				}
 			}
 		}
@@ -697,28 +692,28 @@ pub fn (mut a App) bind_button_handlers() ! {
 			mut mb := a.start_button
 			mb.is_hovered = false
 			if mb.on_leave != unsafe { nil } {
-				handled = mb.on_leave()
+				handled = mb.on_leave(mut a)
 			}
 		}
 		if !(was_started && ob_mouse_area.contains(mouse.x, mouse.y)) {
 			mut ob := a.options_button
 			ob.is_hovered = false
 			if ob.on_leave != unsafe { nil } {
-				handled = ob.on_leave()
+				handled = ob.on_leave(mut a)
 			}
 		}
 		if !(was_started && ims_mouse_area.contains(mouse.x, mouse.y)) {
 			mut ims := a.image_selector
 			ims.is_hovered = false
 			if ims.on_leave != unsafe { nil } {
-				handled = ims.on_leave()
+				handled = ims.on_leave(mut a)
 			}
 		}
 		if !(was_started && dims_mouse_area.contains(mouse.x, mouse.y)) {
 			mut dims := a.dim_selector
 			dims.is_hovered = false
 			if dims.on_leave != unsafe { nil } {
-				handled = dims.on_leave()
+				handled = dims.on_leave(mut a)
 			}
 		}
 
@@ -726,7 +721,8 @@ pub fn (mut a App) bind_button_handlers() ! {
 	})
 
 	// A click anywhere when the puzzle is solved goes back to menu
-	a.mouse.on_button_click(fn [mut a] (mbe shy.MouseButtonEvent) bool {
+	a.mouse.on_button_click(fn (s &shy.Shy, mbe shy.MouseButtonEvent) bool {
+		mut a := s.app[App]()
 		if a.mode != .game {
 			return false
 		}

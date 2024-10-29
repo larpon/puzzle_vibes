@@ -8,7 +8,7 @@ import shy.ease
 import shy.utils
 
 pub struct Toast {
-	id       u16
+	id       u32
 	text     string
 	duration f32 // 1.5 = 1.5 seconds
 mut:
@@ -17,13 +17,13 @@ mut:
 }
 
 pub fn (mut a App) show_toast(toast Toast) {
-	a.toast_ids++
-	tid := a.toast_ids
-
 	mut timer := a.shy.new_timer(
 		duration: u64(toast.duration * 1000 * (a.toasts.len + 1)) // NOTE * (a.toasts.len+1) is a poor man's queue system...
 	)
-	timer.callback = fn [tid, mut a] () {
+	tid := timer.id
+	timer.callback = fn (t &shy.Timer) {
+		mut a := t.shy.app[App]()
+		tid := t.id
 		for mut toast in a.toasts {
 			if toast.id == tid {
 				ac := shy.AnimatorConfig{
@@ -33,7 +33,12 @@ pub fn (mut a App) show_toast(toast Toast) {
 						kind: .sine
 						mode: .out
 					}
-					on_event_fn: fn [tid, mut a] (ud voidptr, ae shy.AnimEvent) {
+					user:        voidptr(t)
+					on_event_fn: fn (tv voidptr, ae shy.AnimEvent) {
+						t := unsafe { &shy.Timer(tv) }
+						mut a := t.shy.app[App]()
+						tid := t.id
+
 						if ae == .end {
 							for i, toast in a.toasts {
 								if toast.id == tid {
