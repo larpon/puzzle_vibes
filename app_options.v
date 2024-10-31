@@ -23,15 +23,21 @@ pub fn (mut a App) render_options_frame(dt f64) {
 		design_factor = 1
 	}
 	size_factor := 1 / design_factor * draw_scale
+
+	text := $if wasm32_emscripten {
+		'Use the grid below to control the puzzle dimensions'
+	} $else {
+		'Drag and drop image files onto the Window
+to use as custom puzzle images.
+Use the grid below to control the puzzle dimensions'
+	}
 	a.quick.text(
 		x:      shy.half * draw_canvas.width
 		y:      draw_canvas.height * 0.1
 		align:  .center
 		origin: shy.Anchor.center
 		size:   30 * size_factor
-		text:   'Drag and drop image files onto the Window
-to use as custom puzzle images.
-Use the grid below to control the puzzle dimensions'
+		text:   text
 	)
 
 	a.dim_selector.draw()

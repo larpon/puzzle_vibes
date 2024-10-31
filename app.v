@@ -108,6 +108,9 @@ pub fn (mut a App) init() ! {
 	a.ExampleApp.init()!
 	a.update_canvas()
 	a.window.set_title('Puzzle Vibes')
+	$if wasm32_emscripten {
+		println('Welcome to Puzzle Vibes!\nUse your mouse to interact with the game and to start the music.\nEnjoy!')
+	}
 
 	icon := $embed_file('assets/images/icon_128x128.png')
 	a.window.set_icon(icon)!
@@ -278,12 +281,14 @@ pub fn (mut a App) init() ! {
 		label:      'QUIT'
 		on_clicked: fn (mut a App) bool {
 			if a.mode == .menu {
-				mut events := a.shy.events()
-				events.send(shy.QuitEvent{
-					timestamp: a.shy.ticks()
-					window_id: a.window.id
-					request:   true
-				}) or {}
+				$if !wasm32_emscripten {
+					mut events := a.shy.events()
+					events.send(shy.QuitEvent{
+						timestamp: a.shy.ticks()
+						window_id: a.window.id
+						request:   true
+					}) or {}
+				}
 			} else {
 				if a.mode == .options {
 					a.settings.dimensions = a.dim_selector.dim
@@ -306,6 +311,9 @@ pub fn (mut a App) init() ! {
 			a.back_button.scale = 1
 			return false
 		}
+	}
+	$if wasm32_emscripten {
+		a.back_button.label = ''
 	}
 
 	a.options_button = &OptionsButton{
@@ -802,6 +810,9 @@ pub fn (mut a App) variable_update(dt f64) {
 
 	if a.mode == .menu {
 		a.back_button.label = 'QUIT'
+		$if wasm32_emscripten {
+			a.back_button.label = ''
+		}
 	} else {
 		a.back_button.label = 'BACK'
 	}
