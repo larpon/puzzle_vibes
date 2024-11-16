@@ -27,5 +27,5 @@ If this is someday fixed everything should run fine with, just:
 v run .
 ```
 
-<img src="assets/screenshot.png" />
+<img src="docs/screenshot.png" />
 
