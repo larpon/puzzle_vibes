@@ -1,7 +1,7 @@
 [Desktop Entry]
 
 Type=Application
-Version=0.8.4
+Version=0.8.5
 Comment=A jigsaw-like puzzle game
 Exec=bash -c '"$(dirname "$1")"/puzzle_vibes.sh' dummy %k
 Name=Puzzle Vibes
