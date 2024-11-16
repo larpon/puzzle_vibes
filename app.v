@@ -407,29 +407,11 @@ pub fn (mut a App) init() ! {
 			}
 			return false
 		}
-		/*
-		on_pressed: fn [mut a] () bool {
-			mut button := a.back_button
-			button.scale = 0.98
-			return false
-		}
-		on_leave: fn [mut a] () bool {
-			mut button := a.back_button
-			button.scale = 1
-			return false
-		}*/
 	}
 
 	a.dim_selector = &DimensionSelector{
 		app:        a
 		dim:        shy.size(3, 3)
-		/*
-		on_clicked: fn [mut a] () bool {
-			if a.mode == .options {
-				cell := a.dim_selector.to_cell()
-			}
-			return false
-		}*/
 		on_pressed: fn (mut a App) bool {
 			if a.mode == .options {
 				if cell := a.dim_selector.to_cell(shy.vec2[f32](a.mouse.x, a.mouse.y)) {
@@ -444,12 +426,6 @@ pub fn (mut a App) init() ! {
 			}
 			return false
 		}
-		/*
-		on_leave: fn [mut a] () bool {
-			mut button := a.back_button
-			button.scale = 1
-			return false
-		}*/
 	}
 
 	// We load the image here since we need valid references to image_selector and dim_selector
