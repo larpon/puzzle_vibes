@@ -846,6 +846,7 @@ pub fn (mut a App) variable_update(dt f64) {
 				a.load_settings() or {}
 				a.is_settings_loaded = true
 				a.dim_selector.label = '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
+				a.update_current_image_best_solve()
 				a.on_resize()
 			}
 		}
