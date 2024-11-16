@@ -72,6 +72,9 @@ fn parse_image_db(raw string) []ImageInfo {
 	for line in lines {
 		fields := line.split('|').map(it.trim_space())
 		if fields.len < 4 {
+			$if debug {
+				eprintln('Skipping image DB line "${line}"...')
+			}
 			continue
 		}
 		// dump(fields)
