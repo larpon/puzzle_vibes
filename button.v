@@ -165,12 +165,14 @@ fn (bb BackButton) draw() {
 
 fn (mut bb BackButton) on_resize() {
 	draw_canvas := bb.app.canvas()
+
+	width := if bb.label.len > 4 { 0.12 * draw_canvas.width } else { 0.07 * draw_canvas.width }
+	height := 0.08 * draw_canvas.height
 	area := shy.Rect{
-		x:      draw_canvas.width - 10 - (0.07 * draw_canvas.width) +
-			((0.07 * draw_canvas.width) * 0.5)
-		y:      10 + ((0.08 * draw_canvas.height) * 0.5)
-		width:  0.07 * draw_canvas.width
-		height: 0.08 * draw_canvas.height
+		x:      draw_canvas.width - 10 - width + (width * 0.5)
+		y:      10 + (height * 0.5)
+		width:  width
+		height: height
 	}
 	// println('Area: ${area}')
 	bb.Button.Rect = area
