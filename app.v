@@ -169,9 +169,16 @@ pub fn (mut a App) init() ! {
 			source: image
 		}
 		if entry !in puzzle_images {
+			filter := if e.file.starts_with('pixelated_') {
+				shy.ImageFilter.nearest
+			} else {
+				shy.ImageFilter.linear
+			}
 			a.quick.load(shy.ImageOptions{
-				resize: a.canvas().factor
-				source: image
+				resize:     a.canvas().factor
+				source:     image
+				min_filter: filter
+				mag_filter: filter
 			})!
 			puzzle_images << entry
 		}
