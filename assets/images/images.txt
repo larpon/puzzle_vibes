@@ -4,10 +4,13 @@
 # Use "#" (hash mark) as first char on a line to make a comment <- like this :)
 # Use "|" (pipe mark) to seperate sections on each line entry
 #
-# Test | test_image.jpg | |
+# Test | test_image.jpg | URL | Comments
 #
 # Credit list of images in this directory.
 Pixel Art Ruins | classical_ruin_tiles.png | https://opengameart.org/content/classical-ruin-tiles | By user surt https://opengameart.org/users/surt under a CC0 license.
 Raspberries | pexels-any-lane-5946101.jpg | https://images.pexels.com/photos/5946101/pexels-photo-5946101.jpeg?cs=srgb&dl=pexels-any-lane-5946101.jpg&fm=jpg | By Any Lane under a permissive license https://www.pexels.com/license/
 Cut Fruits | pexels-engin-akyurt-1435735.jpg | https://images.pexels.com/photos/1435735/pexels-photo-1435735.jpeg?cs=srgb&dl=pexels-engin-akyurt-1435735.jpg&fm=jpg | By Engin Akyurt under a permissive license https://www.pexels.com/license/
 Colors | colors.jpg | https://stocksnap.io/photo/colorful-squares-XA7VFV8XPD | By Artsy Crafty licensed under CC0.
+Arcade Platformer | pixelated_arcade_platformer.png | https://opengameart.org/content/arcade-platformer-assets | By GrafxKid https://opengameart.org/users/grafxkid under a CC0 license.
+Sliced Fruits on Tray | pexels-janetrangdoan-1132047.jpg | https://images.pexels.com/photos/1132047/pexels-photo-1132047.jpeg?cs=srgb&dl=pexels-janetrangdoan-1132047.jpg&fm=jpg | By Jane Trang Doan under a permissive license https://www.pexels.com/license/
+Mini Space Area | mini_space_area.jpg | https://kenney.nl/assets/space-station-kit | By Kenny (https://kenney.nl) licensed under Creative Commons CC0
