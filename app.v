@@ -289,7 +289,9 @@ pub fn (mut a App) init() ! {
 		label:      'QUIT'
 		on_clicked: fn (mut a App) bool {
 			if a.mode == .menu {
-				$if !wasm32_emscripten {
+				$if wasm32_emscripten {
+					a.window.toggle_fullscreen()
+				} $else {
 					mut events := a.shy.events()
 					events.send(shy.QuitEvent{
 						timestamp: a.shy.ticks()
@@ -394,6 +396,7 @@ pub fn (mut a App) init() ! {
 						if remove_area.contains(a.mouse.x, a.mouse.y) {
 							a.image_selector.remove_selected_image()
 							a.remove_user_image(image.source.str())
+							a.save_settings_when_time_permits()
 							a.show_toast(Toast{
 								text:     'Removed "${image.name}"'
 								duration: 1.5
