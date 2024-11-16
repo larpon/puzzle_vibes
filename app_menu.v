@@ -49,14 +49,38 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 	a.options_button.draw()
 	a.image_selector.draw()
 
-	a.start_button.draw()
-
 	draw_scale := a.canvas().factor
 	mut design_factor := f32(1440) / draw_canvas.width
 	if design_factor == 0 {
 		design_factor = 1
 	}
 	size_factor := 1 / design_factor * draw_scale
+
+	best_solve := a.current_image_best_solve
+	if best_solve.is_valid() {
+		ims_rect := a.image_selector.Rect
+		bgcolor := shy.rgba(0, 0, 0, 67)
+		et := a.easy.text(
+			x:      ims_rect.x
+			y:      ims_rect.y + (shy.half * ims_rect.height) + (30 * size_factor)
+			align:  .center
+			origin: shy.Anchor.center
+			size:   30 * size_factor
+			text:   'Best solve time is ${best_solve.pretty_format()} for ${best_solve.dimensions.width:.0f}x${best_solve.dimensions.height:.0f}, ${int(a.settings.dimensions.area())} pieces'
+		)
+		bounds := et.bounds()
+		a.quick.rect(
+			x:      ims_rect.x
+			y:      ims_rect.y + (shy.half * ims_rect.height) + (30 * size_factor)
+			origin: shy.Anchor.center
+			width:  ims_rect.width
+			height: bounds.height + (18 * size_factor)
+			fills:  .body
+			color:  bgcolor
+		)
+		et.draw()
+	}
+	a.start_button.draw()
 
 	sb_rect := a.start_button.Button.Rect
 	a.quick.text(

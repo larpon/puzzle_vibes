@@ -5,7 +5,6 @@ module main
 
 import os
 import rand
-import time
 import shy.lib as shy
 import shy.embed
 import shy.particle
@@ -58,8 +57,11 @@ mut:
 	save_settings_next bool
 	is_settings_loaded bool // for stupid wasm32_emscripten async filesystem
 	//
-	game_start_time u64
-	game_end_time   u64
+	game_start_time          u64
+	game_end_time            u64
+	current_image_best_solve Solve // to show best solve time for current image + puzzle dimension
+	last_solve               Solve
+	best_solve               Solve
 	//
 	version_full string = version_full()
 }
@@ -302,6 +304,7 @@ pub fn (mut a App) init() ! {
 			} else {
 				if a.mode == .options {
 					a.settings.dimensions = a.dim_selector.dim
+					a.update_current_image_best_solve()
 				}
 				a.shy.once(fn (t &shy.Timer) {
 					mut a := t.shy.app[App]()
@@ -446,6 +449,15 @@ pub fn (mut a App) init() ! {
 	a.dim_selector.label = '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
 
 	a.on_resize()
+
+	a.update_current_image_best_solve()
+}
+
+pub fn (mut a App) update_current_image_best_solve() {
+	if iss := a.image_selector.get_selected_image() {
+		img, _ := a.assets.get[shy.Image](iss.source) // TODO: this can be avoided by doing what to_image_id does directly with `iss.source`...
+		a.current_image_best_solve = a.get_solve(a.to_image_id(img), a.settings.dimensions)
+	}
 }
 
 pub fn (mut a App) bind_button_handlers() ! {
@@ -754,7 +766,7 @@ pub fn (mut a App) on_resize() {
 
 	a.image_selector.Rect = shy.Rect{
 		x:      shy.half * draw_canvas.width
-		y:      shy.half * draw_canvas.height + (draw_canvas.height * 0.05)
+		y:      shy.half * draw_canvas.height + (draw_canvas.height * 0.03)
 		width:  0.4 * draw_canvas.width
 		height: 0.2 * draw_canvas.width
 	}
@@ -904,10 +916,19 @@ pub fn (mut a App) start_game() ! {
 
 	a.puzzle.scramble()!
 	a.game_start_time = a.shy.ticks()
+	a.last_solve = Solve{}
+	a.best_solve = a.get_solve(a.to_image_id(a.puzzle.image), a.puzzle.dim)
 }
 
 pub fn (mut a App) end_game() {
 	a.game_end_time = a.shy.ticks()
+	a.last_solve = Solve{
+		image_id:   a.to_image_id(a.puzzle.image)
+		time:       u64(a.game_end_time - a.game_start_time)
+		dimensions: a.puzzle.dim
+	}
+	a.save_if_best_solve(a.last_solve)
+	a.update_current_image_best_solve()
 }
 
 fn (mut a App) select_next_image() {
@@ -921,6 +942,7 @@ fn (mut a App) select_next_image() {
 		}
 	}
 	a.image_selector.next_image()
+	a.update_current_image_best_solve()
 	a.play_sfx_with_random_pitch('Whoosh')
 }
 
@@ -941,6 +963,7 @@ fn (mut a App) select_prev_image() {
 	}
 
 	a.image_selector.prev_image()
+	a.update_current_image_best_solve()
 	a.play_sfx_with_random_pitch('Whoosh')
 }
 
@@ -969,6 +992,7 @@ pub fn (mut a App) remove_user_image(path string) {
 	for i, image_path in a.settings.images {
 		if path == image_path {
 			a.settings.images.delete(i)
+			a.remove_solves_based_on_image_id(os.file_name(path))
 			break
 		}
 	}
@@ -1129,28 +1153,36 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		et_bounds := excellent_text.bounds()
 
 		// TODO
-		show_play_time := true
-		mut play_time_text := a.easy.text(size: 0)
-		if show_play_time {
-			play_time := time.Duration(i64(a.game_end_time - a.game_start_time) * 1000000)
-			play_time_text = a.easy.text(
+		show_solve_time := true
+		mut play_time_easy_text := a.easy.text(size: 0)
+		if show_solve_time {
+			is_best := a.last_solve.is_best(a.best_solve)
+			play_time := a.last_solve.pretty_format()
+			mut play_time_text := 'Puzzle solved in ${play_time}'
+			if is_best {
+				// play_time_old := a.best_solve.pretty_format()
+				// time_diff_faster := a.best_solve.time - a.last_solve.time
+				play_time_text += ' NEW BEST!' // (${time_diff_faster.pretty_format()} faster than ${play_time_old})'
+			}
+			play_time_easy_text = a.easy.text(
 				x:      (a.canvas().width * shy.half)
 				y:      (a.canvas().height * shy.half) + (shy.half * et_bounds.height) //* 1.1
 				align:  .center
 				origin: shy.Anchor.top_center
 				size:   f32(60) * font_size_factor
-				text:   'Puzzle solved in ${play_time}'
+				text:   play_time_text
 				offset: shy.vec2[f32](0, 10 * font_size_factor)
 			)
 		}
-		ptt_bounds := play_time_text.bounds()
+		ptt_bounds := play_time_easy_text.bounds()
 
 		mut cover := a.canvas().rect()
 		cover.y = (a.canvas().height * shy.half) - shy.half * et_bounds.height - (shy.half * et_bounds.height * 0.2)
 		cover.height = et_bounds.height + 2 * (shy.half * et_bounds.height * 0.2)
-		if show_play_time {
+		if show_solve_time {
 			cover.y -= shy.half * ptt_bounds.height
 			cover.height += ptt_bounds.height * 2
+			// cover.height += ptt_bounds.height * (play_time_easy_text.text.count('\n') + 1) * 2
 		}
 		mut color := shy.colors.shy.green
 		color.a = 180
@@ -1161,7 +1193,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		)
 
 		excellent_text.draw()
-		play_time_text.draw()
+		play_time_easy_text.draw()
 
 		// println(et_bounds)
 	}
@@ -1300,5 +1332,57 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 		a.end_game()
 		a.play_cheer()
 		a.puzzle.reset()
+	}
+}
+
+fn (a &App) to_image_id(image shy.Image) string {
+	return os.file_name(image.source().str())
+}
+
+pub fn (mut a App) remove_solves_based_on_image_id(image_id string) {
+	if a.is_settings_loaded {
+		for i, s in a.settings.solves {
+			if s.image_id == image_id {
+				a.settings.solves.delete(i)
+			}
+		}
+	}
+}
+
+pub fn (mut a App) remove_solve(solve Solve) {
+	if a.is_settings_loaded {
+		for i, s in a.settings.solves {
+			if s.is_same(solve) {
+				a.settings.solves.delete(i)
+				return
+			}
+		}
+	}
+}
+
+pub fn (a &App) get_solve(image_id string, dim shy.Size) Solve {
+	if a.is_settings_loaded {
+		for solve in a.settings.solves {
+			if solve.image_id == image_id && solve.dimensions == dim {
+				return solve
+			}
+		}
+	}
+	return Solve{}
+}
+
+// pub fn (a &App) clear_solves() {
+// 	a.settings.solves.clear()
+//   a.save_settings_when_time_permits()
+// }
+
+pub fn (mut a App) save_if_best_solve(solve Solve) {
+	if a.is_settings_loaded && solve.is_valid() {
+		best_solve := a.best_solve.get_best(solve)
+		if best_solve.is_valid() && best_solve.is_same(solve) {
+			a.remove_solve(best_solve)
+			a.settings.solves << best_solve
+			a.save_settings_when_time_permits()
+		}
 	}
 }

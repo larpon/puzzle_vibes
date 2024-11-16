@@ -4,12 +4,51 @@
 module main
 
 import os
+import time
 import toml
 import shy.lib as shy
 import shy.paths
 import shy.mth
 
 const config_dir = os.join_path(paths.root(.config), 'Black Grain', 'blackgrain.dk', 'puzzle_vibes')
+
+pub struct Solve {
+mut:
+	image_id   string // "identifier" can be just "img.png" for builtin images, whole paths for user provided
+	dimensions shy.Size = shy.size(0, 0)
+	time       u64 // milliseconds
+}
+
+fn (s1 Solve) is_same(s2 Solve) bool {
+	return s1.image_id == s2.image_id && int(s1.dimensions.width) == int(s2.dimensions.width)
+		&& int(s1.dimensions.height) == int(s2.dimensions.height)
+}
+
+fn (s Solve) is_valid() bool {
+	return s.image_id != '' && s.time > 0 && s.dimensions.width > 0 && s.dimensions.height > 0
+}
+
+// is_best returns `true` if `s` and `s1` is valid and `s` is best (has lowest `time`).
+fn (s Solve) is_best(s1 Solve) bool {
+	return (s.is_valid() && s1.is_valid()) && s == s.get_best(s1)
+}
+
+// get_best returns the best of the solves `s` and `s1`.
+// If it can not be determined `s1` is returned
+fn (s Solve) get_best(s1 Solve) Solve {
+	if s.time == 0 || s1.time == 0 {
+		return s1
+	}
+	if s.time < s1.time {
+		return s
+	}
+	return s1
+}
+
+fn (s Solve) pretty_format() string {
+	return time.Duration(i64(s.time) * 1000000).str()
+}
+
 pub struct UserSettings {
 mut:
 	music_volume f32 = 1.0
@@ -17,6 +56,7 @@ mut:
 	images       []string
 	dimensions   shy.Size = shy.size(3, 3)
 	game_mode    GameMode = .relaxed
+	solves       []Solve
 }
 
 fn (mut us UserSettings) defaults() {
@@ -25,6 +65,7 @@ fn (mut us UserSettings) defaults() {
 	us.images.clear()
 	us.dimensions = shy.size(3, 3)
 	us.game_mode = .relaxed
+	us.solves.clear()
 }
 
 fn (a &App) ensure_settings_path() !string {
@@ -83,6 +124,23 @@ fn (mut a App) load_settings() ! {
 			a.add_user_image(image)!
 		}
 		// println(a.settings.images)
+
+		// Load "highscores"
+		if toml_solves := toml_doc.value_opt('solves') {
+			toml_any_arr := toml_solves.array()
+			for toml_any in toml_any_arr {
+				dim_width := f32(toml_any.value('dimensions.width').default_to(int(0)).int())
+				dim_height := f32(toml_any.value('dimensions.height').default_to(int(0)).int())
+				solve := Solve{
+					image_id:   toml_any.value('image_id').default_to('').string()
+					dimensions: shy.size(dim_width, dim_height)
+					time:       toml_any.value('time').default_to(u64(0)).u64()
+				}
+				if solve.is_valid() {
+					a.settings.solves << solve
+				}
+			}
+		}
 	}
 }
 
@@ -123,6 +181,20 @@ format_version = "1.0.0"
 	images_txt = images_txt.trim_right(',\n')
 	images_txt += '\n\t]\n'
 	toml_txt += images_txt
+
+	// Save "highscores"
+	for solve in a.settings.solves {
+		if solve.is_valid() {
+			toml_txt += '
+[[solves]]
+image_id = "${solve.image_id}"
+dimensions.width  = ${solve.dimensions.width:.1f}
+dimensions.height = ${solve.dimensions.height:.1f}
+time = ${solve.time}
+'
+		}
+	}
+
 	os.write_file(save_file, toml_txt)!
 	// $if wasm32_emscripten {
 	//   shy.emscripten_sync_fs()!
