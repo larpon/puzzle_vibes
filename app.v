@@ -56,6 +56,7 @@ mut:
 	toasts         []Toast
 	//
 	save_settings_next bool
+	is_settings_loaded bool // for stupid wasm32_emscripten async filesystem
 	//
 	game_start_time u64
 	game_end_time   u64
@@ -320,7 +321,11 @@ pub fn (mut a App) init() ! {
 		}
 	}
 	$if wasm32_emscripten {
-		a.back_button.label = ''
+		a.back_button.label = if a.window.is_fullscreen() {
+			'BACK'
+		} else {
+			'FULLSCREEN'
+		}
 	}
 
 	a.options_button = &OptionsButton{
@@ -430,6 +435,10 @@ pub fn (mut a App) init() ! {
 
 	// We load the image here since we need valid references to image_selector and dim_selector
 	a.load_settings()!
+	$if !wasm32_emscripten {
+		// See variable_update/1 for wasm32_emscripten workaround for slow/async JS filesystem
+		a.is_settings_loaded = true
+	}
 
 	a.dim_selector.label = '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
 
@@ -794,7 +803,11 @@ pub fn (mut a App) variable_update(dt f64) {
 	if a.mode == .menu {
 		a.back_button.label = 'QUIT'
 		$if wasm32_emscripten {
-			a.back_button.label = ''
+			a.back_button.label = if a.window.is_fullscreen() {
+				'BACK'
+			} else {
+				'FULLSCREEN'
+			}
 		}
 	} else {
 		a.back_button.label = 'BACK'
@@ -809,6 +822,18 @@ pub fn (mut a App) variable_update(dt f64) {
 			})
 		}
 		a.save_settings_next = false
+	}
+
+	$if wasm32_emscripten {
+		if a.mode != .game && !a.is_settings_loaded {
+			save_file := a.settings_file() or { '' }
+			if os.exists(save_file) {
+				a.load_settings() or {}
+				a.is_settings_loaded = true
+				a.dim_selector.label = '${a.settings.dimensions.width:.0f}x${a.settings.dimensions.height:.0f} Puzzle, ${int(a.settings.dimensions.area())} pieces'
+				a.on_resize()
+			}
+		}
 	}
 }
 

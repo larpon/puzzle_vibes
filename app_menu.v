@@ -5,7 +5,7 @@ module main
 
 import shy.lib as shy
 
-//[live]
+// @[live]
 pub fn (mut a App) render_menu_frame(dt f64) {
 	draw_canvas := a.canvas()
 	// println(draw_canvas)
@@ -33,6 +33,7 @@ pub fn (mut a App) render_menu_frame(dt f64) {
 		}
 	)*/
 
+	// Particles when puzzle images are switched
 	a.ps.draw()
 
 	// Logo

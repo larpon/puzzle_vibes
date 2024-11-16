@@ -6,8 +6,10 @@ module main
 import os
 import toml
 import shy.lib as shy
+import shy.paths
 import shy.mth
 
+const config_dir = os.join_path(paths.root(.config), 'Black Grain', 'blackgrain.dk', 'puzzle_vibes')
 pub struct UserSettings {
 mut:
 	music_volume f32 = 1.0
@@ -22,15 +24,12 @@ fn (mut us UserSettings) defaults() {
 	us.sfx_volume = 1.0
 	us.images.clear()
 	us.dimensions = shy.size(3, 3)
+	us.game_mode = .relaxed
 }
 
 fn (a &App) ensure_settings_path() !string {
-	save_path := os.join_path(a.shy.config_dir()!, 'Black Grain', 'blackgrain.dk', 'puzzle_vibes')
-	if !os.exists(save_path) {
-		os.mkdir_all(save_path) or {
-			return error('could not make directory "${save_path}": ${err}')
-		}
-	}
+	save_path := config_dir
+	paths.ensure(save_path)!
 	return save_path
 }
 
@@ -46,9 +45,6 @@ fn (mut a App) save_settings_when_time_permits() {
 fn (mut a App) load_settings() ! {
 	save_file := a.settings_file()!
 	if os.is_file(save_file) {
-		// eprintln(os.read_file(save_file)!)
-		// eprintln('---')
-
 		toml_doc := toml.parse_file(save_file)!
 
 		if val := toml_doc.value_opt('music.volume') {
@@ -61,13 +57,13 @@ fn (mut a App) load_settings() ! {
 
 		if dim_width := toml_doc.value_opt('puzzle.dimensions.width') {
 			max := a.dim_selector.max.x
-			w := dim_width.f32()
+			w := f32(dim_width.int())
 			a.settings.dimensions.width = mth.max(mth.min(w, max), 1)
 		}
 
 		if dim_height := toml_doc.value_opt('puzzle.dimensions.height') {
 			max := a.dim_selector.max.y
-			h := dim_height.f32()
+			h := f32(dim_height.int())
 			a.settings.dimensions.height = mth.max(mth.min(h, max), 1)
 		}
 		a.dim_selector.dim = a.settings.dimensions
@@ -109,15 +105,15 @@ format_version = "1.0.0"
 	toml_txt += '
 
 [puzzle]
-	dimensions.width  = ${a.settings.dimensions.width}'
+	dimensions.width  = ${a.settings.dimensions.width:.1f}'
 
 	toml_txt += '
-	dimensions.height = ${a.settings.dimensions.height}'
+	dimensions.height = ${a.settings.dimensions.height:.1f}'
 
 	toml_txt += '
 
 [app]
-  game_mode = "${a.settings.game_mode}"
+	game_mode = "${a.settings.game_mode}"
 '
 
 	mut images_txt := '\timages = [\n'
@@ -128,11 +124,9 @@ format_version = "1.0.0"
 	images_txt += '\n\t]\n'
 	toml_txt += images_txt
 	os.write_file(save_file, toml_txt)!
-	// eprintln('${@FN}')
-	// 	a.show_toast(Toast{
-	// 		text: 'Settings saved (TODO)'
-	// 		duration: 2.5
-	// 	})
+	// $if wasm32_emscripten {
+	//   shy.emscripten_sync_fs()!
+	// }
 }
 
 fn (mut a App) reset_settings() ! {
