@@ -1273,7 +1273,7 @@ pub fn (mut a App) on_game_event_update(e GameEvent) {
 							// NOTE The following is important for being able to detect if the puzzle is solved
 							// since we use an epsilon equality check to detect if the pieces are near their solved
 							// position (start position, before the initial scramble).
-							// The float math involved for getting points in and out of the viewports is admittedly very crue and homemade
+							// The float math involved for getting points in and out of the viewports is admittedly very crude and homemade
 							// so things can end up several pixels apart from their starting location, hence this litte "trick" to
 							// get the values back where they came from. If it works, eh?!
 							piece.pos = p.pos_solved
