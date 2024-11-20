@@ -759,7 +759,7 @@ pub fn (mut a App) on_resize() {
 	draw_canvas := a.canvas()
 	a.start_button.Button.Rect = shy.Rect{
 		x:      shy.half * draw_canvas.width
-		y:      0.85 * draw_canvas.height //+ (draw_canvas.height * 0.15)
+		y:      0.87 * draw_canvas.height //+ (draw_canvas.height * 0.15)
 		width:  0.12 * draw_canvas.width
 		height: 0.05 * draw_canvas.width
 	}
