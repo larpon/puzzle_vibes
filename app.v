@@ -1101,7 +1101,7 @@ pub fn (mut a App) render_game_frame(dt f64) {
 		if !piece.grabbed {
 			piece.draw()
 		} else {
-			grabbed_piece = piece
+			grabbed_piece = unsafe { piece } // NOTE: silence notice, that, if fixed "properly", fails...
 		}
 
 		if piece.hovered {
