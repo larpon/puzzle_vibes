@@ -873,6 +873,17 @@ pub fn (mut a App) frame(dt f64) {
 	// a.draw.pop_matrix()
 	a.back_button.draw()
 	a.draw_toasts(dt)
+
+	$if show_fps ? {
+		win := a.window
+		a.quick.text(
+			x:      win.width * 0.01
+			y:      win.height * (1.0 - 0.04)
+			origin: shy.Anchor.bottom_left
+			text:   'Frame: ${win.state.frame}
+FPS: ${win.fps()} ${win.state.update_rate}@hz dT: ${dt:.3f}'
+		)
+	}
 }
 
 // asset returns a `string` with the full path to the asset.
