@@ -89,8 +89,8 @@ pub fn (mut p Puzzle) init(pc PuzzleConfig) ! {
 	// dump(img)
 
 	p.viewport = viewport
-	p.width = img.width
-	p.height = img.height
+	p.width = f32(img.width)
+	p.height = f32(img.height)
 	p.piece_size = piece_size
 	p.dim = dim
 
